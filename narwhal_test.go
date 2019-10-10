@@ -7,3 +7,7 @@ func TestNarwhal_Save(t *testing.T) {
 	n.Save("cyanprint","data","./")
 }
 
+func TestNarwhal_Load(t *testing.T) {
+	n :=Narwhal{false}
+	n.Load("ezvol", "./data.tar.gz")
+}

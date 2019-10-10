@@ -3,10 +3,80 @@ package narwhal_lib
 import (
 	"github.com/google/uuid"
 	"log"
+	"path/filepath"
 )
 
 type Narwhal struct {
 	quiet bool
+}
+
+func (n Narwhal) Print(s string) {
+	if !n.quiet {
+		log.Print(s)
+	}
+}
+
+func (n Narwhal) Load(volume string, tarPath string) []string {
+	id, err := uuid.NewUUID()
+	if err != nil {
+		return []string{err.Error()}
+	}
+	var errors []string
+	name := "narwhal-mount" + "abc" + id.String()
+	c := Container{name, n.quiet}
+
+	n.Print("Creating container to connect to volume...")
+	s := c.Start("alpine", volume, "/home/data", "dt")
+	if s != "" {
+		return []string{s}
+	}
+
+	n.Print("Copying to container")
+	s = c.Copy(true, tarPath, "/home/")
+	if s != "" {
+		errors = append(errors, s)
+	} else {
+		n.Print("Done copying!")
+	}
+	file := filepath.Base(tarPath)
+	if len(errors) == 0 {
+		n.Print("Renaming file")
+		s = c.Exec("/home", "mv", file, "data.tar.gz")
+		if s != "" {
+			errors = append(errors, s)
+		} else {
+			n.Print("Done renaming!")
+		}
+	}
+	if len(errors) == 0 {
+		n.Print("Unzipping volume")
+		s = c.Exec("/home", "tar", "-xzf", "data.tar.gz")
+		if s != "" {
+			errors = append(errors, s)
+		} else {
+			n.Print("Volume Unzipped!")
+		}
+	}
+
+	n.Print("Killing Container...")
+	s = c.Kill()
+	if s != "" {
+		errors = append(errors, s)
+		n.Print("Container failed to be killed!")
+	} else {
+		n.Print("Container Killed...")
+	}
+
+	n.Print("Removing Container...")
+	s = c.Remove()
+	if s != "" {
+		errors = append(errors, s)
+		n.Print("Container failed to be removed!")
+	} else {
+		n.Print("Container remove...")
+	}
+
+	return errors
 }
 
 func (n Narwhal) Save(volume string, tarName string, path string) []string {
@@ -15,49 +85,50 @@ func (n Narwhal) Save(volume string, tarName string, path string) []string {
 		return []string{err.Error()}
 	}
 	var errors []string
-	name := "narwhal-mount" + "abc" + id.String()
+
 	zipped := tarName + ".tar.gz"
+	name := "narwhal-mount" + "abc" + id.String()
 	c := Container{name, n.quiet}
 
-	log.Println("Creating container to connect to volume...")
+	n.Print("Creating container to connect to volume...")
 	s := c.Start("alpine", volume, "/home/data", "dt")
 	if s != "" {
 		return []string{s}
 	}
-	log.Println("Container Created")
+	n.Print("Container Created")
 
-	log.Println("Zipping volume...")
-	s = c.Exec("/home", "tar","-czf",zipped, "data")
-	if s != ""{
+	n.Print("Zipping volume...")
+	s = c.Exec("/home", "tar", "-czf", zipped, "data")
+	if s != "" {
 		errors = append(errors, s)
 	}
-	log.Println("Volume Zipped!")
+	n.Print("Volume Zipped!")
 
-	if len(errors) == 0{
-		log.Println("Copying to host...")
-		s = c.Copy(false, "/home/" + zipped, path)
-		if s != ""{
+	if len(errors) == 0 {
+		n.Print("Copying to host...")
+		s = c.Copy(false, "/home/"+zipped, path)
+		if s != "" {
 			errors = append(errors, s)
 		}
-		log.Println("Done copying!")
+		n.Print("Done copying!")
 	}
 
-	log.Println("Killing Container...")
+	n.Print("Killing Container...")
 	s = c.Kill()
 	if s != "" {
 		errors = append(errors, s)
-		log.Println("Container failed to be killed!")
-	}else {
-		log.Println("Container Killed...")
+		n.Print("Container failed to be killed!")
+	} else {
+		n.Print("Container Killed...")
 	}
 
-	log.Println("Removing Container...")
+	n.Print("Removing Container...")
 	s = c.Remove()
 	if s != "" {
 		errors = append(errors, s)
-		log.Println("Container failed to be removed!")
-	}else {
-		log.Println("Container remove...")
+		n.Print("Container failed to be removed!")
+	} else {
+		n.Print("Container remove...")
 	}
 
 	return errors
