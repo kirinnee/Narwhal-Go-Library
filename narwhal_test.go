@@ -30,6 +30,11 @@ func TestNarwhal_KillAll(t *testing.T) {
 	HelpRun("docker", "run", "--rm", "-itd", "kirinnee/rocketrs:latest")
 	HelpRun("docker", "run", "--rm", "-itd", "kirinnee/rocketrs:latest")
 	HelpRun("docker", "run", "--rm", "-itd", "kirinnee/rocketrs:latest")
+	started := HelpRun("docker", "ps", "-q")
+	if len(started) < 3 {
+		t.Fail()
+	}
+
 	n.KillAll()
 	left := HelpRun("docker", "ps", "-q")
 	fmt.Println("Left:", left)
