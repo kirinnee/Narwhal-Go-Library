@@ -22,7 +22,7 @@ import(
 Argument is whether its quiet. If true, it will suppress all console logs.
 ```go
 func main(){
-    narwhal := Narwhal{false}
+    narwhal := narwhal_lib.New(false)
 
 }
 ``` 

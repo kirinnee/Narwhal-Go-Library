@@ -16,17 +16,17 @@ func HelpRun(command string, arg ...string) []string {
 }
 
 func TestNarwhal_Save(t *testing.T) {
-	n := Narwhal{false}
+	n := New(false)
 	n.Save("cyanprint", "data", "./")
 }
 
 func TestNarwhal_Load(t *testing.T) {
-	n := Narwhal{false}
+	n := New(false)
 	n.Load("ezvol", "./data.tar.gz")
 }
 
 func TestNarwhal_KillAll(t *testing.T) {
-	n := Narwhal{false}
+	n := New(false)
 	HelpRun("docker", "run", "--rm", "-itd", "kirinnee/rocketrs:latest")
 	HelpRun("docker", "run", "--rm", "-itd", "kirinnee/rocketrs:latest")
 	HelpRun("docker", "run", "--rm", "-itd", "kirinnee/rocketrs:latest")

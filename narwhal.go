@@ -7,7 +7,15 @@ import (
 )
 
 type Narwhal struct {
-	quiet bool
+	quiet  bool
+	docker Docker
+}
+
+func New(quiet bool) *Narwhal {
+	return &Narwhal{
+		quiet:  quiet,
+		docker: Docker{quiet: quiet},
+	}
 }
 
 func (n Narwhal) Print(s string) {
@@ -137,8 +145,7 @@ func (n Narwhal) Save(volume string, tarName string, path string) []string {
 
 func (n Narwhal) KillAll() []string {
 
-	d := Docker{quiet: n.quiet}
-	processes, err := d.ContainerIds()
+	processes, err := n.docker.ContainerIds()
 
 	if err != "" {
 		return []string{err}
