@@ -54,6 +54,15 @@ if len(err) > 0 {
 }
 ```
 
+### Remove all docker Containers
+`RemoveAll()`
+```go
+err := narwhal.RemoveAll()
+if len(err) > 0 {
+    //handle error here
+}
+```
+
 ## Contributing
 Please read [CONTRIBUTING.md](CONTRIBUTING.MD) for details on our code of conduct, and the process for submitting pull requests to us.
 

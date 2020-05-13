@@ -5,15 +5,29 @@ type Docker struct {
 }
 
 func (d Docker) ContainerIds() ([]string, string) {
-	processes := make([]string, 0, 10)
+	containers := make([]string, 0, 10)
 
 	psq := CreateCommand("docker", "ps", "-q")
 	err := psq.CustomRun(d.quiet, func(s string) {
-		processes = append(processes, s)
+		containers = append(containers, s)
 	}, func(s string) {})
 	if err != "" {
-		return processes, err
+		return containers, err
 	}
-	return processes, ""
+	return containers, ""
+
+}
+
+func (d Docker) AllContainerIds() ([]string, string) {
+	containers := make([]string, 0, 10)
+
+	psq := CreateCommand("docker", "ps", "-aq")
+	err := psq.CustomRun(d.quiet, func(s string) {
+		containers = append(containers, s)
+	}, func(s string) {})
+	if err != "" {
+		return containers, err
+	}
+	return containers, ""
 
 }

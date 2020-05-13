@@ -3,6 +3,7 @@ package narwhal_lib
 import (
 	"fmt"
 	"testing"
+	"time"
 )
 
 func HelpRun(command string, arg ...string) []string {
@@ -41,4 +42,29 @@ func TestNarwhal_KillAll(t *testing.T) {
 	if len(left) != 0 {
 		t.Fail()
 	}
+}
+
+func TestNarwhal_RemoveAll(t *testing.T) {
+	//setup
+	n := New(false)
+	HelpRun("docker", "run", "hello-world")
+	HelpRun("docker", "run", "hello-world")
+	HelpRun("docker", "run", "hello-world")
+
+	time.Sleep(1)
+	started := HelpRun("docker", "ps", "-aq")
+	if len(started) < 3 {
+		fmt.Print("not enough containers")
+		t.Fail()
+	}
+
+	// test
+	n.RemoveAll()
+	left := HelpRun("docker", "ps", "-aq")
+	fmt.Println("Left:", left)
+	if len(left) != 0 {
+		fmt.Print("containers not removed")
+		t.Fail()
+	}
+
 }
