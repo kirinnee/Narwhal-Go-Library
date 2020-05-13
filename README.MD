@@ -1,8 +1,12 @@
 # Narwhal Go Lib
 
-Go version of Narwhal library, which is a library to allow you to programmatically save and load docker 
-volumes as tarballs
+Go version of Narwhal library, which is a library to allow you to programmatically perform certain docker 
+actions.
 
+Includes:
+- Saving docker volume as tar ball
+- Loading docker volume from tar ball
+- Kill All Running Containers
 
 # Getting Started
 Import it as a library (go module)
@@ -36,6 +40,15 @@ if len(err) > 0 {
 `Save(<volume name>, <tarball name file name>, <relative path to save to>)`
 ```go
 err := narwhal.Save("my-volume", "data", "./")
+if len(err) > 0 {
+    //handle error here
+}
+```
+
+### Killing all docker Containers
+`KillAll()`
+```go
+err := narwhal.KillAll()
 if len(err) > 0 {
     //handle error here
 }
