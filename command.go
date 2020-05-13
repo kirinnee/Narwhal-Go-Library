@@ -3,7 +3,6 @@ package narwhal_lib
 import (
 	"bufio"
 	"fmt"
-	"log"
 	"os/exec"
 )
 
@@ -18,21 +17,38 @@ func CreateCommand(command string, arg ...string) Command {
 	return Command{command, arg}
 }
 
-func (command Command) Run(quiet bool) string {
-
+func (command Command) CustomRun(quiet bool, outEvent OutputEvent, errEvent OutputEvent) string {
 	cmd := exec.Command(command.command, command.arg...)
-	cmdReader, err := cmd.StderrPipe()
+
+	// Error Scan
+	errReader, err := cmd.StderrPipe()
 	if err != nil {
 		return err.Error()
 	}
 
-	// create scanner
-	scanner := bufio.NewScanner(cmdReader)
+	// Normal Scan
+	outReader, err := cmd.StdoutPipe()
+	if err != nil {
+		return err.Error()
+	}
+
+	// create scanners for both pipes
+	errScanner := bufio.NewScanner(errReader)
+	outScanner := bufio.NewScanner(outReader)
+
 	go func() {
-		for scanner.Scan() {
+		for errScanner.Scan() {
 			if !quiet {
-				s := fmt.Sprint(scanner.Text())
-				log.Println(s)
+				s := fmt.Sprint(errScanner.Text())
+				errEvent(s)
+			}
+		}
+	}()
+	go func() {
+		for outScanner.Scan() {
+			if !quiet {
+				s := fmt.Sprint(outScanner.Text())
+				outEvent(s)
 			}
 		}
 	}()
@@ -47,4 +63,12 @@ func (command Command) Run(quiet bool) string {
 		return err.Error()
 	}
 	return ""
+}
+
+func (command Command) Run(quiet bool) string {
+	return command.CustomRun(quiet, func(s string) {
+		fmt.Println(s)
+	}, func(s string) {
+		fmt.Println(s)
+	})
 }
