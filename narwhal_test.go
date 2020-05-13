@@ -1,13 +1,39 @@
 package narwhal_lib
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
+
+func HelpRun(command string, arg ...string) []string {
+	ret := make([]string, 0, 10)
+	CreateCommand(command, arg...).CustomRun(false, func(s string) {
+		ret = append(ret, s)
+	}, func(s string) {
+		ret = append(ret, s)
+	})
+	return ret
+}
 
 func TestNarwhal_Save(t *testing.T) {
 	n := Narwhal{false}
-	n.Save("cyanprint","data","./")
+	n.Save("cyanprint", "data", "./")
 }
 
 func TestNarwhal_Load(t *testing.T) {
-	n :=Narwhal{false}
+	n := Narwhal{false}
 	n.Load("ezvol", "./data.tar.gz")
+}
+
+func TestNarwhal_KillAll(t *testing.T) {
+	n := Narwhal{false}
+	HelpRun("docker", "run", "--rm", "-itd", "kirinnee/rocketrs:latest")
+	HelpRun("docker", "run", "--rm", "-itd", "kirinnee/rocketrs:latest")
+	HelpRun("docker", "run", "--rm", "-itd", "kirinnee/rocketrs:latest")
+	n.KillAll()
+	left := HelpRun("docker", "ps", "-q")
+	fmt.Println("Left:", left)
+	if len(left) != 0 {
+		t.Fail()
+	}
 }

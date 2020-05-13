@@ -134,3 +134,29 @@ func (n Narwhal) Save(volume string, tarName string, path string) []string {
 	return errors
 
 }
+
+func (n Narwhal) KillAll() []string {
+
+	d := Docker{quiet: n.quiet}
+	processes, err := d.ContainerIds()
+
+	if err != "" {
+		return []string{err}
+	}
+
+	if len(processes) == 0 {
+		n.Print("No process killed")
+	}
+
+	n.Print("Killing processes")
+
+	processes = append([]string{"kill"}, processes...)
+
+	kill := CreateCommand("docker", processes...)
+	err = kill.Run(n.quiet)
+	if err != "" {
+		return []string{err}
+	}
+	return nil
+
+}
