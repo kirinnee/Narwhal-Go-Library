@@ -38,18 +38,14 @@ func (command Command) CustomRun(quiet bool, outEvent OutputEvent, errEvent Outp
 
 	go func() {
 		for errScanner.Scan() {
-			if !quiet {
-				s := fmt.Sprint(errScanner.Text())
-				errEvent(s)
-			}
+			s := fmt.Sprint(errScanner.Text())
+			errEvent(s)
 		}
 	}()
 	go func() {
 		for outScanner.Scan() {
-			if !quiet {
-				s := fmt.Sprint(outScanner.Text())
-				outEvent(s)
-			}
+			s := fmt.Sprint(outScanner.Text())
+			outEvent(s)
 		}
 	}()
 
@@ -67,8 +63,14 @@ func (command Command) CustomRun(quiet bool, outEvent OutputEvent, errEvent Outp
 
 func (command Command) Run(quiet bool) string {
 	return command.CustomRun(quiet, func(s string) {
-		fmt.Println(s)
+		if !quiet {
+			fmt.Println(s)
+
+		}
 	}, func(s string) {
-		fmt.Println(s)
+		if !quiet {
+			fmt.Println(s)
+
+		}
 	})
 }
