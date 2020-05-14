@@ -134,3 +134,8 @@ func TestDocker_Run(t *testing.T) {
 	clear := HelpRun("docker", "rmi", "wew:tag")
 	fmt.Println(clear)
 }
+
+func TestNarwhal_Run(t *testing.T) {
+	n := New(false)
+	n.Run("random", "do.ckerfile", "sample:sample")
+}

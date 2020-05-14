@@ -243,3 +243,11 @@ func (n Narwhal) DeployAuto(stack string, file string, unsafe bool) []string {
 	return n.Deploy(stack, file)
 
 }
+
+func (n Narwhal) Run(context, file, image string) []string {
+	err := n.docker.Build(context, file, image)
+	if len(err) > 0 {
+		return err
+	}
+	return n.docker.Run(image)
+}
