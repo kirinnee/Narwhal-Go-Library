@@ -35,14 +35,14 @@ func (n Narwhal) Load(volume string, tarPath string) []string {
 
 	n.Print("Creating container to connect to volume...")
 	s := c.Start("alpine", volume, "/home/data", "dt")
-	if s != "" {
-		return []string{s}
+	if len(s) != 0 {
+		return s
 	}
 
 	n.Print("Copying to container")
 	s = c.Copy(true, tarPath, "/home/")
-	if s != "" {
-		errors = append(errors, s)
+	if len(s) != 0 {
+		errors = append(errors, s...)
 	} else {
 		n.Print("Done copying!")
 	}
@@ -50,8 +50,8 @@ func (n Narwhal) Load(volume string, tarPath string) []string {
 	if len(errors) == 0 {
 		n.Print("Renaming file")
 		s = c.Exec("/home", "mv", file, "data.tar.gz")
-		if s != "" {
-			errors = append(errors, s)
+		if len(s) != 0 {
+			errors = append(errors, s...)
 		} else {
 			n.Print("Done renaming!")
 		}
@@ -59,8 +59,8 @@ func (n Narwhal) Load(volume string, tarPath string) []string {
 	if len(errors) == 0 {
 		n.Print("Unzipping volume")
 		s = c.Exec("/home", "tar", "-xzf", "data.tar.gz")
-		if s != "" {
-			errors = append(errors, s)
+		if len(s) != 0 {
+			errors = append(errors, s...)
 		} else {
 			n.Print("Volume Unzipped!")
 		}
@@ -68,8 +68,8 @@ func (n Narwhal) Load(volume string, tarPath string) []string {
 
 	n.Print("Killing Container...")
 	s = c.Kill()
-	if s != "" {
-		errors = append(errors, s)
+	if len(s) != 0 {
+		errors = append(errors, s...)
 		n.Print("Container failed to be killed!")
 	} else {
 		n.Print("Container Killed...")
@@ -77,8 +77,8 @@ func (n Narwhal) Load(volume string, tarPath string) []string {
 
 	n.Print("Removing Container...")
 	s = c.Remove()
-	if s != "" {
-		errors = append(errors, s)
+	if len(s) != 0 {
+		errors = append(errors, s...)
 		n.Print("Container failed to be removed!")
 	} else {
 		n.Print("Container remove...")
@@ -100,31 +100,31 @@ func (n Narwhal) Save(volume string, tarName string, path string) []string {
 
 	n.Print("Creating container to connect to volume...")
 	s := c.Start("alpine", volume, "/home/data", "dt")
-	if s != "" {
-		return []string{s}
+	if len(s) != 0 {
+		return s
 	}
 	n.Print("Container Created")
 
 	n.Print("Zipping volume...")
 	s = c.Exec("/home", "tar", "-czf", zipped, "data")
-	if s != "" {
-		errors = append(errors, s)
+	if len(s) != 0 {
+		errors = append(errors, s...)
 	}
 	n.Print("Volume Zipped!")
 
 	if len(errors) == 0 {
 		n.Print("Copying to host...")
 		s = c.Copy(false, "/home/"+zipped, path)
-		if s != "" {
-			errors = append(errors, s)
+		if len(s) != 0 {
+			errors = append(errors, s...)
 		}
 		n.Print("Done copying!")
 	}
 
 	n.Print("Killing Container...")
 	s = c.Kill()
-	if s != "" {
-		errors = append(errors, s)
+	if len(s) != 0 {
+		errors = append(errors, s...)
 		n.Print("Container failed to be killed!")
 	} else {
 		n.Print("Container Killed...")
@@ -132,8 +132,8 @@ func (n Narwhal) Save(volume string, tarName string, path string) []string {
 
 	n.Print("Removing Container...")
 	s = c.Remove()
-	if s != "" {
-		errors = append(errors, s)
+	if len(s) != 0 {
+		errors = append(errors, s...)
 		n.Print("Container failed to be removed!")
 	} else {
 		n.Print("Container remove...")
@@ -161,9 +161,9 @@ func (n Narwhal) KillAll() []string {
 	containers = append([]string{"kill"}, containers...)
 
 	kill := CreateCommand("docker", containers...)
-	err = kill.Run(n.quiet)
-	if err != "" {
-		return []string{err}
+	errs := kill.Run(n.quiet)
+	if len(errs) != 0 {
+		return errs
 	}
 	return []string{}
 
@@ -185,9 +185,9 @@ func (n Narwhal) RemoveAll() []string {
 	containers = append([]string{"rm"}, containers...)
 
 	rm := CreateCommand("docker", containers...)
-	err = rm.Run(n.quiet)
-	if err != "" {
-		return []string{err}
+	errs := rm.Run(n.quiet)
+	if len(errs) != 0 {
+		return errs
 	}
 	return []string{}
 }

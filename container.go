@@ -5,22 +5,22 @@ type Container struct {
 	quiet bool
 }
 
-func (c Container) Start(image string, mount string, mountTarget string, flags string) string {
+func (c Container) Start(image string, mount string, mountTarget string, flags string) []string {
 	cmd := CreateCommand("docker", "run", "-"+flags, "--name", c.name, "-v", mount+":"+mountTarget, image)
 	return cmd.Run(c.quiet)
 }
 
-func (c Container) Kill() string {
+func (c Container) Kill() []string {
 	cmd := CreateCommand("docker", "kill", c.name)
 	return cmd.Run(c.quiet)
 }
 
-func (c Container) Remove() string {
+func (c Container) Remove() []string {
 	cmd := CreateCommand("docker", "rm", c.name)
 	return cmd.Run(c.quiet)
 }
 
-func (c Container) Copy(into bool, from string, to string) string {
+func (c Container) Copy(into bool, from string, to string) []string {
 	if into {
 		to = c.name + ":" + to
 	} else {
@@ -30,7 +30,7 @@ func (c Container) Copy(into bool, from string, to string) string {
 	return cmd.Run(c.quiet)
 }
 
-func (c Container) Exec(workDir string, args ...string) string {
+func (c Container) Exec(workDir string, args ...string) []string {
 	a := []string{"exec", "-w", workDir, c.name}
 	a = append(a, args...)
 	cmd := CreateCommand("docker", a...)

@@ -61,16 +61,15 @@ func (command Command) CustomRun(quiet bool, outEvent OutputEvent, errEvent Outp
 	return ""
 }
 
-func (command Command) Run(quiet bool) string {
-	return command.CustomRun(quiet, func(s string) {
+func (command Command) Run(quiet bool) []string {
+	errs := make([]string, 0, 10)
+	others := command.CustomRun(quiet, func(s string) {
 		if !quiet {
 			fmt.Println(s)
 
 		}
 	}, func(s string) {
-		if !quiet {
-			fmt.Println(s)
-
-		}
+		errs = append(errs, s)
 	})
+	return append(errs, others)
 }
