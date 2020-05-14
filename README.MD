@@ -54,6 +54,14 @@ if len(err) > 0 {
 }
 ```
 
+### Stopping all docker Containers
+`StopAll()`
+```go
+err := narwhal.KillAll()
+if len(err) > 0 {
+    //handle error here
+}
+```
 ### Remove all docker Containers
 `RemoveAll()`
 ```go
@@ -65,18 +73,45 @@ if len(err) > 0 {
 
 ### Deploy a stack with swarm
 `Deploy(<stack name>, <compose file name>)`
+This deploy option comes with additional feature of auto-building images. In the `docker-compose.yml`, you can 
+opt to add a `image` category, which allows you to build images before running the stack, allowing you to have the
+`build` feature like with older `docker-compose` versions 
+
 ```go
 err := narwhal.Deploy("app", "docker-compose.yml")
 if len(err) > 0 {
     //handle error here
 }
 ```
+
+**Example docker-compose.yml** :
+```yaml
+version: '3.8'
+
+services:
+  webapp:
+    image: rocket:latest
+    ports:
+      - 8000:8000
+    deploy:
+      replicas: 3
+
+images:
+  # images, you can add as many as you need 
+  rokcet:latest:
+    context: rocket # this can be excluded if its the current folder
+    file: Dockerfile # this can also be excluded if the dockerfile is "Dockerfile"
+```
+
 ### Deploy a stack with swarm in auto mode
-This mode will automatically initialize swarm if its is not in swarm mode, restart the swarm node if 
-deployment fails
-`Deploy(<stack name>, <compose file name>)`
+`Deploy(<stack name>, <compose file name>, <unsafe>)`
+This mode will automatically initialize swarm if its is not in swarm mode.
+
+The `unsafe` option will automatically leave the swarm and re-init the swarm before if the deployment failed
+initially. (hard reset).
+
 ```go
-err := narwhal.DeployAuto("app", "docker-compose.yml")
+err := narwhal.DeployAuto("app", "docker-compose.yml", false)
 if len(err) > 0 {
     //handle error here
 }

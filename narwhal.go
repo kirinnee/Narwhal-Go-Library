@@ -187,12 +187,38 @@ func (n Narwhal) RemoveAll() []string {
 	return CreateCommand("docker", containers...).Run(n.quiet)
 }
 
-func (n Narwhal) Deploy(stack string, file string) []string {
-	deploy := CreateCommand("docker", "stack", "deploy", "--prune", "--with-registry-auth", "--compose-file", file, "--resolve-image", "changed", stack)
-	return deploy.Run(n.quiet)
+func (n Narwhal) StopAll() []string {
+	containers, err := n.docker.AllContainerIds()
+
+	if len(err) != 0 {
+		return err
+	}
+
+	if len(containers) == 0 {
+		n.Print("No containers stopped")
+		return []string{}
+	}
+	n.Print("Stopping all containers")
+
+	containers = append([]string{"stop"}, containers...)
+
+	return CreateCommand("docker", containers...).Run(n.quiet)
 }
 
-func (n Narwhal) DeployAuto(stack string, file string) []string {
+func (n Narwhal) Deploy(stack string, file string) []string {
+
+	b, compose, err := Parse(file)
+	if err != nil {
+		return []string{err.Error()}
+	}
+	for k, v := range compose.Images {
+		n.docker.Build(v.Context, v.File, k)
+	}
+	deploy := CreateCommand("docker", "stack", "deploy", "--prune", "--with-registry-auth", "--compose-file", "-", "--resolve-image", "always", stack)
+	return deploy.StdIn(b).Run(n.quiet)
+}
+
+func (n Narwhal) DeployAuto(stack string, file string, unsafe bool) []string {
 
 	stackExist := CreateCommand("docker", "stack", "ls").Run(n.quiet)
 
@@ -205,8 +231,11 @@ func (n Narwhal) DeployAuto(stack string, file string) []string {
 	}
 
 	errs := n.Deploy(stack, file)
-	if len(errs) == 0 {
+	if len(errs) == 0 || !unsafe {
 		return errs
+	}
+	for _, v := range errs {
+		n.Print(v)
 	}
 	n.Print("Stack could not be deploy... automatically re-initialize swarm...")
 	CreateCommand("docker", "swarm", "leave", "--force").Run(n.quiet)

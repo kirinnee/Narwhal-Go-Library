@@ -9,16 +9,38 @@ import (
 type Command struct {
 	command string
 	arg     []string
+	stdin   []byte
 }
 
 type OutputEvent = func(string)
 
 func CreateCommand(command string, arg ...string) Command {
-	return Command{command, arg}
+	return Command{command, arg, nil}
+}
+
+func (command Command) StdIn(b []byte) Command {
+	command.stdin = b
+	return command
 }
 
 func (command Command) CustomRun(quiet bool, outEvent OutputEvent, errEvent OutputEvent) string {
 	cmd := exec.Command(command.command, command.arg...)
+
+	if command.stdin != nil {
+		in, err := cmd.StdinPipe()
+		if err != nil {
+			return err.Error()
+		}
+		_, err = in.Write(command.stdin)
+
+		if err != nil {
+			return err.Error()
+		}
+		err = in.Close()
+		if err != nil {
+			return err.Error()
+		}
+	}
 
 	// Error Scan
 	errReader, err := cmd.StderrPipe()
@@ -53,8 +75,8 @@ func (command Command) CustomRun(quiet bool, outEvent OutputEvent, errEvent Outp
 	if err != nil {
 		return err.Error()
 	}
-
 	err = cmd.Wait()
+
 	if err != nil {
 		return err.Error()
 	}

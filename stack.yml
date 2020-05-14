@@ -2,7 +2,14 @@ version: '3.8'
 
 
 services:
-  web_app:
-    image: kirinnee/rocketrs:latest
+  webapp:
+    image: rocket:latest
+    ports:
+      - 8000:8000
     deploy:
       replicas: 3
+
+images:
+  rokcet:latest:
+    context: rocket
+    file: df
