@@ -1,0 +1,29 @@
+
+
+FROM ekidd/rust-musl-builder:nightly-2020-05-07 AS base
+ARG APP_NAME='rocket'
+RUN rustup target add x86_64-unknown-linux-musl
+
+RUN sudo chown -R rust:rust /home
+
+FROM base as deps
+ARG APP_NAME='rocket'
+
+RUN USER=root cargo new /home/$APP_NAME
+
+WORKDIR /home/$APP_NAME
+COPY ./Cargo.lock ./Cargo.lock
+COPY ./Cargo.toml ./Cargo.toml
+RUN cargo build --release --target x86_64-unknown-linux-musl
+
+RUN rm ./target/x86_64-unknown-linux-musl/release/deps/$APP_NAME*
+RUN rm src/*.rs
+
+FROM deps as build
+COPY . .
+RUN cargo build --release --target x86_64-unknown-linux-musl
+
+FROM scratch
+ARG APP_NAME='rocket'
+COPY --from=build /home/$APP_NAME/target/x86_64-unknown-linux-musl/release/$APP_NAME .
+CMD ["./rocket"]
