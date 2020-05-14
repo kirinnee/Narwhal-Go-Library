@@ -2,6 +2,7 @@ package narwhal_lib
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 )
@@ -66,6 +67,27 @@ func TestNarwhal_RemoveAll(t *testing.T) {
 	if len(left) != 0 {
 		fmt.Print("containers not removed")
 		t.Fail()
+	}
+
+}
+
+func TestNarwhal_DeployAuto(t *testing.T) {
+	n := New(false)
+	n.KillAll()
+
+	n.DeployAuto("test-stack", "stack.yml")
+
+	stack := HelpRun("docker", "stack", "ls")
+	if len(stack) != 2 {
+		fmt.Println(stack, len(stack))
+		t.Error("Incorrect number of stacks")
+	}
+	time.Sleep(time.Second * 10)
+	stacks := HelpRun("docker", "ps", "--format", "\"{{.Names}}\"")
+	for _, v := range stacks {
+		if !strings.HasPrefix(v, "\"test-stack_web_app.") {
+			t.Error("Incorrect name: ", v)
+		}
 	}
 
 }

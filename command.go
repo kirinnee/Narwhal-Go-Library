@@ -71,5 +71,8 @@ func (command Command) Run(quiet bool) []string {
 	}, func(s string) {
 		errs = append(errs, s)
 	})
+	if others == "" {
+		return errs
+	}
 	return append(errs, others)
 }

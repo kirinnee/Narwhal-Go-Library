@@ -186,3 +186,31 @@ func (n Narwhal) RemoveAll() []string {
 
 	return CreateCommand("docker", containers...).Run(n.quiet)
 }
+
+func (n Narwhal) Deploy(stack string, file string) []string {
+	deploy := CreateCommand("docker", "stack", "deploy", "--prune", "--with-registry-auth", "--compose-file", file, "--resolve-image", "changed", stack)
+	return deploy.Run(n.quiet)
+}
+
+func (n Narwhal) DeployAuto(stack string, file string) []string {
+
+	stackExist := CreateCommand("docker", "stack", "ls").Run(n.quiet)
+
+	if len(stackExist) > 0 {
+		n.Print("Docker not in swarm mode... starting in swarm mode")
+		err := CreateCommand("docker", "swarm", "init").Run(n.quiet)
+		if len(err) > 0 {
+			return err
+		}
+	}
+
+	errs := n.Deploy(stack, file)
+	if len(errs) == 0 {
+		return errs
+	}
+	n.Print("Stack could not be deploy... automatically re-initialize swarm...")
+	CreateCommand("docker", "swarm", "leave", "--force").Run(n.quiet)
+	CreateCommand("docker", "swarm", "init").Run(n.quiet)
+	return n.Deploy(stack, file)
+
+}

@@ -1,0 +1,8 @@
+version: '3.8'
+
+
+services:
+  web_app:
+    image: kirinnee/rocketrs:latest
+    deploy:
+      replicas: 3

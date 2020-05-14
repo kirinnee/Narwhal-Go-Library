@@ -63,6 +63,25 @@ if len(err) > 0 {
 }
 ```
 
+### Deploy a stack with swarm
+`Deploy(<stack name>, <compose file name>)`
+```go
+err := narwhal.Deploy("app", "docker-compose.yml")
+if len(err) > 0 {
+    //handle error here
+}
+```
+### Deploy a stack with swarm in auto mode
+This mode will automatically initialize swarm if its is not in swarm mode, restart the swarm node if 
+deployment fails
+`Deploy(<stack name>, <compose file name>)`
+```go
+err := narwhal.DeployAuto("app", "docker-compose.yml")
+if len(err) > 0 {
+    //handle error here
+}
+```
+
 ## Contributing
 Please read [CONTRIBUTING.md](CONTRIBUTING.MD) for details on our code of conduct, and the process for submitting pull requests to us.
 
