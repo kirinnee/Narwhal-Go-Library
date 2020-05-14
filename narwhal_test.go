@@ -60,6 +60,7 @@ func TestNarwhal_RemoveAll(t *testing.T) {
 
 	// test
 	n.RemoveAll()
+
 	left := HelpRun("docker", "ps", "-aq")
 	fmt.Println("Left:", left)
 	if len(left) != 0 {

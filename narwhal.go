@@ -147,8 +147,8 @@ func (n Narwhal) KillAll() []string {
 
 	containers, err := n.docker.ContainerIds()
 
-	if err != "" {
-		return []string{err}
+	if len(err) != 0 {
+		return err
 	}
 
 	if len(containers) == 0 {
@@ -172,8 +172,8 @@ func (n Narwhal) KillAll() []string {
 func (n Narwhal) RemoveAll() []string {
 	containers, err := n.docker.AllContainerIds()
 
-	if err != "" {
-		return []string{err}
+	if len(err) != 0 {
+		return err
 	}
 
 	if len(containers) == 0 {
@@ -184,10 +184,5 @@ func (n Narwhal) RemoveAll() []string {
 
 	containers = append([]string{"rm"}, containers...)
 
-	rm := CreateCommand("docker", containers...)
-	errs := rm.Run(n.quiet)
-	if len(errs) != 0 {
-		return errs
-	}
-	return []string{}
+	return CreateCommand("docker", containers...).Run(n.quiet)
 }
