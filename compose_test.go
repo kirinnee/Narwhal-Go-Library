@@ -1,12 +1,14 @@
 package narwhal_lib
 
 import (
+	a "github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"testing"
 )
 
-func Breakdown() (map[string][]byte, error) {
+func breakDown() (map[string][]byte, error) {
 	b, err := ioutil.ReadFile("./compose_test/sample.yml")
 	if err != nil {
 		return nil, err
@@ -29,53 +31,74 @@ func Breakdown() (map[string][]byte, error) {
 	return ret, nil
 }
 
-func TestParseConfig_both_context_and_file(t *testing.T) {
-	m, err := Breakdown()
-	if err != nil {
-		t.Error(err)
-	}
-	subj := m["rocket"]
+type ComposeSuite struct {
+	suite.Suite
+	m *map[string][]byte
+}
 
+func TestCompose(t *testing.T) {
+	suite.Run(t, new(ComposeSuite))
+}
+
+func (s *ComposeSuite) SetupSuite() {
+	m, err := breakDown()
+	if err != nil {
+		panic("failed ")
+	}
+	s.m = &m
+}
+
+//func (s *ComposeSuite) TearDownSuite() {
+//
+//}
+
+func (s *ComposeSuite) Test_Example() {
+	assert := a.New(s.T())
+	assert.Equal(5, 10-5)
+
+}
+
+func (s *ComposeSuite) Test_ParseConfig_both_context_and_file() {
+	assert := a.New(s.T())
+	m := *s.m
+
+	// test
+	subj := m["rocket"]
 	expected := Builds{
 		Context: "random",
 		File:    "df",
 	}
 	actual, err := parseConfig(subj)
-	if err != nil {
-		t.Error(err)
-	}
 
-	if actual != expected {
-		t.Error("not equal")
-	}
+	// assert
+	assert.Nil(err)
+	assert.Equal(actual, expected)
+
 }
 
-func TestParseConfig_string(t *testing.T) {
-	m, err := Breakdown()
-	if err != nil {
-		t.Error(err)
-	}
-	subj := m["golang"]
+func (s *ComposeSuite) Test_ParseConfig_string() {
+	assert := a.New(s.T())
+	m := *s.m
 
+	// test
+	subj := m["golang"]
 	expected := Builds{
 		Context: "welp",
 		File:    "Dockerfile",
 	}
 	actual, err := parseConfig(subj)
-	if err != nil {
-		t.Error(err)
-	}
 
-	if actual != expected {
-		t.Error("not equal")
-	}
+	// assert
+	assert.Nil(err)
+	assert.Equal(actual, expected)
+
 }
 
-func TestParseConfig_only_file(t *testing.T) {
-	m, err := Breakdown()
-	if err != nil {
-		t.Error(err)
-	}
+func (s *ComposeSuite) TestParseConfig_only_file() {
+	assert := a.New(s.T())
+	m := *s.m
+
+	// test
 	subj := m["dotnet"]
 
 	expected := Builds{
@@ -83,20 +106,17 @@ func TestParseConfig_only_file(t *testing.T) {
 		File:    "RandomFile",
 	}
 	actual, err := parseConfig(subj)
-	if err != nil {
-		t.Error(err)
-	}
 
-	if actual != expected {
-		t.Error("not equal")
-	}
+	// assert
+	assert.Nil(err)
+	assert.Equal(actual, expected)
 }
 
-func TestParseConfig_only_context(t *testing.T) {
-	m, err := Breakdown()
-	if err != nil {
-		t.Error(err)
-	}
+func (s *ComposeSuite) TestParseConfig_only_context() {
+	assert := a.New(s.T())
+	m := *s.m
+
+	// test
 	subj := m["node"]
 
 	expected := Builds{
@@ -104,20 +124,18 @@ func TestParseConfig_only_context(t *testing.T) {
 		File:    "Dockerfile",
 	}
 	actual, err := parseConfig(subj)
-	if err != nil {
-		t.Error(err)
-	}
 
-	if actual != expected {
-		t.Error("not equal")
-	}
+	// assert
+	assert.Nil(err)
+	assert.Equal(actual, expected)
+
 }
 
-func TestParseConfig_empty(t *testing.T) {
-	m, err := Breakdown()
-	if err != nil {
-		t.Error(err)
-	}
+func (s *ComposeSuite) TestParseConfig_empty() {
+	assert := a.New(s.T())
+	m := *s.m
+
+	// test
 	subj := m["ror"]
 
 	expected := Builds{
@@ -125,11 +143,9 @@ func TestParseConfig_empty(t *testing.T) {
 		File:    "Dockerfile",
 	}
 	actual, err := parseConfig(subj)
-	if err != nil {
-		t.Error(err)
-	}
 
-	if actual != expected {
-		t.Error("not equal")
-	}
+	// assert
+	assert.Nil(err)
+	assert.Equal(actual, expected)
+
 }
