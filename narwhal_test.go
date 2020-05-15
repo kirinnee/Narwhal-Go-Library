@@ -1,71 +1,82 @@
 package narwhal_lib
 
 import (
-	"fmt"
-	"strings"
+	a "github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 	"testing"
 	"time"
 )
 
-func helpRun(command string, arg ...string) []string {
-	ret := make([]string, 0, 10)
-	CreateCommand(command, arg...).CustomRun(false, func(s string) {
-		ret = append(ret, s)
-	}, func(s string) {
-		ret = append(ret, s)
-	})
-	return ret
+type NarwhalSuite struct {
+	suite.Suite
+	n       *Narwhal
+	factory *TestCommandFactory
 }
 
-func TestNarwhal_Save(t *testing.T) {
-	n := New(false)
-	n.Save("cyanprint", "data", "./")
+func TestNarwhal(t *testing.T) {
+	suite.Run(t, new(NarwhalSuite))
 }
 
-func TestNarwhal_Load(t *testing.T) {
-	n := New(false)
-	n.Load("ezvol", "./data.tar.gz")
+func (s *NarwhalSuite) SetupTest() {
+	factory := TestCommandFactory{}
+	s.factory = &factory
+	s.n = NewCustom(false, &factory)
+
 }
 
-func TestNarwhal_KillAll(t *testing.T) {
-	n := New(false)
+func (s *NarwhalSuite) TearDownTest() {
+	helpRunPrint(`docker swarm leave --force`)
+	helpRunPrint(`docker kill $(docker ps -q)`)
+	helpRunPrint(`docker rm $(docker ps -aq)`)
+}
+
+func (s *NarwhalSuite) Test_Save() {
+	s.n.Save("cyanprint", "data", "./")
+}
+
+func (s *NarwhalSuite) Test_Load() {
+	s.n.Load("ezvol", "./data.tar.gz")
+}
+
+func (s *NarwhalSuite) Test_KillAll() {
+	// Setup
+	assert := a.New(s.T())
 	helpRun("docker", "run", "--rm", "-itd", "kirinnee/rocketrs:latest")
 	helpRun("docker", "run", "--rm", "-itd", "kirinnee/rocketrs:latest")
 	helpRun("docker", "run", "--rm", "-itd", "kirinnee/rocketrs:latest")
 	started := helpRun("docker", "ps", "-q")
-	if len(started) < 3 {
-		t.Fail()
-	}
+	assert.Len(started, 3)
 
-	n.KillAll()
+	// Test
+	s.n.KillAll()
+
+	// Assert
 	left := helpRun("docker", "ps", "-q")
-	fmt.Println("Left:", left)
-	if len(left) != 0 {
-		t.Fail()
-	}
+	assert.Empty(left)
+
 }
 
-func TestNarwhal_StopAll(t *testing.T) {
-	n := New(false)
+func (s *NarwhalSuite) Test_StopAll() {
+	assert := a.New(s.T())
+
+	// Setup
 	helpRun("docker", "run", "--rm", "-itd", "kirinnee/rocketrs:latest")
 	helpRun("docker", "run", "--rm", "-itd", "kirinnee/rocketrs:latest")
 	helpRun("docker", "run", "--rm", "-itd", "kirinnee/rocketrs:latest")
 	started := helpRun("docker", "ps", "-q")
-	if len(started) < 3 {
-		t.Fail()
-	}
+	assert.Len(started, 3)
 
-	n.StopAll()
+	// Test
+	s.n.StopAll()
 
+	// Assert
 	left := helpRun("docker", "ps", "-q")
-	fmt.Println("Left:", left)
-	if len(left) != 0 {
-		t.Fail()
-	}
+	assert.Empty(left)
 }
 
-func TestNarwhal_RemoveAll(t *testing.T) {
-	//setup
+func (s *NarwhalSuite) Test_RemoveAll() {
+	//Setup
+	assert := a.New(s.T())
 	n := New(false)
 	helpRun("docker", "run", "hello-world")
 	helpRun("docker", "run", "hello-world")
@@ -73,46 +84,39 @@ func TestNarwhal_RemoveAll(t *testing.T) {
 
 	time.Sleep(1)
 	started := helpRun("docker", "ps", "-aq")
-	if len(started) < 3 {
-		fmt.Print("not enough containers")
-		t.Fail()
-	}
+	assert.Len(started, 3)
 
 	// test
 	n.RemoveAll()
 
 	left := helpRun("docker", "ps", "-aq")
-	fmt.Println("Left:", left)
-	if len(left) != 0 {
-		fmt.Print("containers not removed")
-		t.Fail()
-	}
-
+	assert.Empty(left)
 }
 
-func TestNarwhal_DeployAuto(t *testing.T) {
-	n := New(false)
-	n.KillAll()
+func (s *NarwhalSuite) Test_DeployAuto() {
+	assert := a.New(s.T())
 
-	n.DeployAuto("test-stack", "stack.yml", false)
-
+	// Test
+	s.n.DeployAuto("test-stack", "stack.yml", false)
 	stack := helpRun("docker", "stack", "ls")
-	if len(stack) != 2 {
-		fmt.Println(stack, len(stack))
-		t.Error("Incorrect number of stacks")
-	}
+	container := helpRun("docker", "ps", "--format", "\"{{.Names}}\"")
 	time.Sleep(time.Second * 10)
-	stacks := helpRun("docker", "ps", "--format", "\"{{.Names}}\"")
-	for _, v := range stacks {
-		if !strings.HasPrefix(v, "\"test-stack_rocket.") {
-			t.Error("Incorrect name: ", v)
-		}
+	for i, v := range container {
+		container[i] = string([]rune(v)[:18])
 	}
 
-	helpRun("docker", "swarm", "leave", "--force")
+	// Assert
+	assert.Len(stack, 2)
+	for _, v := range container {
+		assert.Equal(v, `"test-stack_rocket.`)
+	}
+
 }
 
-func TestNarwhal_Run(t *testing.T) {
-	n := New(false)
-	n.Run("random", "do.ckerfile", "sample:sample")
+func (s *NarwhalSuite) Test_Run() {
+	assert := a.New(s.T())
+	s.n.Run("random", "do.ckerfile", "sample:sample")
+	out := s.factory.output
+	assert.Equal(out[len(out)-1], "BOOOOOO")
+
 }

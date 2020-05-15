@@ -3,92 +3,83 @@ package narwhal_lib
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"os/exec"
 )
 
-type Command struct {
-	command string
-	arg     []string
-	stdin   []byte
-}
-
-type OutputEvent = func(string)
-
-func CreateCommand(command string, arg ...string) Command {
-	return Command{command, arg, nil}
-}
-
-func (command Command) StdIn(b []byte) Command {
-	command.stdin = b
-	return command
-}
-
-func (command Command) CustomRun(quiet bool, outEvent OutputEvent, errEvent OutputEvent) string {
-	cmd := exec.Command(command.command, command.arg...)
-
-	if command.stdin != nil {
-		in, err := cmd.StdinPipe()
-		if err != nil {
-			return err.Error()
-		}
-		_, err = in.Write(command.stdin)
-
-		if err != nil {
-			return err.Error()
-		}
-		err = in.Close()
-		if err != nil {
-			return err.Error()
-		}
+type (
+	Command struct {
+		cmd   *exec.Cmd
+		quiet bool
 	}
 
-	// Error Scan
-	errReader, err := cmd.StderrPipe()
+	CommandFactory struct {
+		quiet bool
+	}
+)
+
+func (c CommandFactory) Create(command string, arg ...string) Executable {
+	return &Command{quiet: c.quiet, cmd: exec.Command(command, arg...)}
+
+}
+
+func (command *Command) Write(b []byte) error {
+	pipe, err := command.cmd.StdinPipe()
 	if err != nil {
-		return err.Error()
+		return err
 	}
-
-	// Normal Scan
-	outReader, err := cmd.StdoutPipe()
+	_, err = pipe.Write(b)
 	if err != nil {
-		return err.Error()
+		return err
 	}
+	err = pipe.Close()
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
-	// create scanners for both pipes
-	errScanner := bufio.NewScanner(errReader)
-	outScanner := bufio.NewScanner(outReader)
-
+func pipe(pipe io.ReadCloser, event OutputEvent) {
+	scanner := bufio.NewScanner(pipe)
 	go func() {
-		for errScanner.Scan() {
-			s := fmt.Sprint(errScanner.Text())
-			errEvent(s)
-		}
-	}()
-	go func() {
-		for outScanner.Scan() {
-			s := fmt.Sprint(outScanner.Text())
-			outEvent(s)
+		for scanner.Scan() {
+			s := fmt.Sprint(scanner.Text())
+			event(s)
 		}
 	}()
 
-	err = cmd.Start()
+}
+
+func (command *Command) CustomRun(outEvent OutputEvent, errEvent OutputEvent) string {
+
+	stdout, err := command.cmd.StdoutPipe()
 	if err != nil {
 		return err.Error()
 	}
-	err = cmd.Wait()
+	stderr, err := command.cmd.StderrPipe()
+	if err != nil {
+		return err.Error()
+	}
 
+	pipe(stdout, outEvent)
+	pipe(stderr, errEvent)
+
+	err = command.cmd.Start()
+	if err != nil {
+		return err.Error()
+	}
+	err = command.cmd.Wait()
 	if err != nil {
 		return err.Error()
 	}
 	return ""
 }
 
-func (command Command) Run(quiet bool) []string {
+func (command *Command) Run() []string {
 	errs := make([]string, 0, 10)
-	others := command.CustomRun(quiet, func(s string) {
-		if !quiet {
+	others := command.CustomRun(func(s string) {
+		if !command.quiet {
 			fmt.Println(s)
-
 		}
 	}, func(s string) {
 		errs = append(errs, s)
