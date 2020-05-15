@@ -1,7 +1,6 @@
 package narwhal_lib
 
 import (
-	"fmt"
 	"path/filepath"
 )
 
@@ -19,7 +18,6 @@ func (d Docker) ContainerIds() ([]string, []string) {
 
 func (d Docker) Build(context, file, image string) []string {
 	file = filepath.Join(context, file)
-	fmt.Println("HELOOOOOOOO", d.cmd)
 	return d.cmd.Create("docker", "build", "--tag", image, "--file", file, context).Run()
 }
 
