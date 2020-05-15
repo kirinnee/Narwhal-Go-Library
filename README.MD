@@ -96,11 +96,27 @@ services:
     deploy:
       replicas: 3
 
+# images, you can add as many as you need
 images:
-  # images, you can add as many as you need 
-  rokcet:latest:
-    context: rocket # this can be excluded if its the current folder
-    file: Dockerfile # this can also be excluded if the dockerfile is "Dockerfile"
+
+  # This builds at 'rocket' folder and uses 'rocket/df' as the Dockerfile 
+  rocket:latest: 
+    context: rocket 
+    file: df 
+
+  # This builds at 'golang' folder and uses 'golang/Dockerfile' as the Dockerfile
+  golang:latest: 
+    context: golang
+
+  # This builds at '.' folder and uses './dfile' as the Dockerfile
+  node:latest: 
+    file: dfile
+  
+  # This builds at 'dotnet' folder and uses 'dotnet/Dockerfile' as the Dockerfile
+  dotnet:latest: dotnet 
+  
+  # This builds at '.' folder and uses './Dockerfile' as the Dockerfile
+  ror:latest:
 ```
 
 ### Deploy a stack with swarm in auto mode
