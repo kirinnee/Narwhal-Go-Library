@@ -207,7 +207,7 @@ func (n Narwhal) StopAll() []string {
 
 func (n Narwhal) Deploy(stack string, file string) []string {
 
-	b, compose, err := Parse(file)
+	b, compose, err := parse(file)
 	if err != nil {
 		return []string{err.Error()}
 	}
