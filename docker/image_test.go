@@ -19,18 +19,18 @@ func TestImage(t *testing.T) {
 }
 
 func (s *ImageSuite) SetupSuite() {
-	test_helper.HelpRunQ("docker kill $(docker ps -q)")
-	test_helper.HelpRunQ("docker rm $(docker ps -aq)")
+	test_helper.HelpRunVQ("docker kill $(docker ps -q)")
+	test_helper.HelpRunVQ("docker rm $(docker ps -aq)")
 	s.d = New(false, &test_helper.TestCommandFactory{Output: []string{}})
 }
 
 func (s *ImageSuite) TearDownSuite() {
-	test_helper.HelpRunQ("docker kill $(docker ps -q)")
-	test_helper.HelpRunQ("docker rm $(docker ps -aq)")
+	test_helper.HelpRunVQ("docker kill $(docker ps -q)")
+	test_helper.HelpRunVQ("docker rm $(docker ps -aq)")
 }
 
 func (s *ImageSuite) TearDownTest() {
-	test_helper.HelpRunQ(`docker rmi $(docker images --no-trunc -af "reference=narwhal/**/*" --format "{{.Repository}}:{{.Tag}}")`)
+	test_helper.HelpRunVQ(`docker rmi $(docker images --no-trunc -af "reference=narwhal/**/*" --format "{{.Repository}}:{{.Tag}}")`)
 }
 
 func (s *ImageSuite) Test_Image_labels() {
@@ -105,18 +105,13 @@ func (s *ImageSuite) Test_Image_references() {
 	assert.Empty(err5)
 	assert.Empty(err6)
 
-	assert.Equal(order(expect1), toNames(image1))
-	assert.Equal(order(expect2), toNames(image2))
-	assert.Equal(order(expect3), toNames(image3))
-	assert.Equal(order(expect4), toNames(image4))
-	assert.Equal(order(expect5), toNames(image5))
-	assert.Equal(order(expect6), toNames(image6))
+	assert.Equal(test_helper.Order(expect1), toNames(image1))
+	assert.Equal(test_helper.Order(expect2), toNames(image2))
+	assert.Equal(test_helper.Order(expect3), toNames(image3))
+	assert.Equal(test_helper.Order(expect4), toNames(image4))
+	assert.Equal(test_helper.Order(expect5), toNames(image5))
+	assert.Equal(test_helper.Order(expect6), toNames(image6))
 
-}
-
-func order(in []string) []string {
-	sort.Strings(in)
-	return in
 }
 
 func toNames(images []Image) []string {

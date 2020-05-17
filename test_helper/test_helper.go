@@ -7,6 +7,7 @@ import (
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
 	"os/exec"
+	"sort"
 	"strings"
 )
 
@@ -70,6 +71,7 @@ func (c *TestCommand) Run() []string {
 	errs := make([]string, 0, 10)
 	others := c.CustomRun(func(s string) {
 		c.factory.Output = append(c.factory.Output, s)
+		fmt.Println(s)
 	}, func(s string) {
 		errs = append(errs, s)
 	})
@@ -90,9 +92,26 @@ func HelpRun(c string, arg ...string) []string {
 	return ret
 }
 
-func HelpRunQ(command string) string {
+func Order(in []string) []string {
+	sort.Strings(in)
+	return in
+}
+func HelpRunVQ(command string) string {
 	ctx := context.Background()
 	runner, _ := interp.New(interp.StdIO(nil, nil, nil))
+
+	f, _ := syntax.NewParser().Parse(strings.NewReader(command), "")
+
+	err := runner.Run(ctx, f)
+	if err != nil {
+		return err.Error()
+	}
+	return ""
+}
+
+func HelpRunQ(command string) string {
+	ctx := context.Background()
+	runner, _ := interp.New(interp.StdIO(nil, nil, LogWriter{}))
 
 	f, _ := syntax.NewParser().Parse(strings.NewReader(command), "")
 
@@ -121,7 +140,7 @@ type LogWriter struct {
 
 func (LogWriter) Write(p []byte) (n int, err error) {
 
-	fmt.Println(string(p))
+	fmt.Print(string(p))
 	return len(p), nil
 
 }

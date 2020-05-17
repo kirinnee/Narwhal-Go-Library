@@ -29,9 +29,10 @@ func (s *NarwhalSuite) SetupTest() {
 }
 
 func (s *NarwhalSuite) TearDownTest() {
-	test_helper.HelpRunPrint(`docker swarm leave --force`)
-	test_helper.HelpRunPrint(`docker kill $(docker ps -q)`)
-	test_helper.HelpRunPrint(`docker rm $(docker ps -aq)`)
+	test_helper.HelpRunVQ(`docker swarm leave --force `)
+	test_helper.HelpRunVQ(`docker kill $(docker ps -q) || :`)
+	test_helper.HelpRunVQ(`docker rm $(docker ps -aq) || :`)
+	test_helper.HelpRunVQ(`docker rmi $(docker images -f "reference=narwhal/*" --format ""{{.Repository}}:{{.Tag}}"") || :`)
 }
 
 func (s *NarwhalSuite) Test_Save() {
@@ -119,8 +120,39 @@ func (s *NarwhalSuite) Test_DeployAuto() {
 
 func (s *NarwhalSuite) Test_Run() {
 	assert := a.New(s.T())
-	s.n.Run("random", "do.ckerfile", "sample:sample")
+	s.n.Run("random", "do.ckerfile", "sample:sample", "")
 	out := s.factory.Output
 	assert.Equal(out[len(out)-1], "BOOOOOO")
 
+}
+
+func (s *NarwhalSuite) Test_Remove() {
+	assert := a.New(s.T())
+
+	// Setup
+	test_helper.HelpRunQ("docker build --tag narwhal/a:0 ./small")
+	test_helper.HelpRunQ("docker build --tag narwhal/a:1 ./small")
+	test_helper.HelpRunQ("docker build --tag narwhal/a:2 ./small")
+	test_helper.HelpRunQ("docker build --tag narwhal/a:3 ./small")
+	test_helper.HelpRunQ("docker build --tag narwhal/b:0 --label=a1 ./small")
+	test_helper.HelpRunQ("docker build --tag narwhal/b:1 --label=a2 ./small")
+	test_helper.HelpRunQ("docker build --tag narwhal/b:2 --label=a3 ./small")
+
+	ref := test_helper.HelpRun(`docker`, "images", "-f", "reference=narwhal/*", "--format", "{{.Repository}}:{{.Tag}}")
+	ref = test_helper.Order(ref)
+
+	eRef := test_helper.Order([]string{
+		"narwhal/a:0", "narwhal/a:1", "narwhal/a:2", "narwhal/a:3", "narwhal/b:0", "narwhal/b:1", "narwhal/b:2",
+	})
+	assert.Equal(ref, eRef)
+
+	//expected
+	expected := test_helper.Order([]string{
+		"narwhal/b:0", "narwhal/b:1", "narwhal/b:2",
+	})
+
+	// test
+	s.n.RemoveImage("ref=narwhal/a:*")
+	actual := test_helper.HelpRun(`docker`, "images", "-f", "reference=narwhal/*", "--format", "{{.Repository}}:{{.Tag}}")
+	assert.Equal(expected, test_helper.Order(actual))
 }

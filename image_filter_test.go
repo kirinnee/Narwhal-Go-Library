@@ -3,7 +3,7 @@ package narwhal_lib
 import (
 	a "github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
-	"sort"
+	"gitlab.com/kiringo/narwhal_lib/test_helper"
 	"testing"
 )
 
@@ -86,12 +86,12 @@ func (s *ImageFilterSuite) Test_Catching_References() {
 func (s *ImageFilterSuite) Test_Catching_TimeQuery() {
 	assert := a.New(s.T())
 
-	e1 := order([]string{"from=golang:latest to=golang:5"})
-	e2 := order([]string{"before=6h2m"})
-	e3 := order([]string{"after=2020/07/09 18:00"})
-	e4 := order([]string{"after=1h2s", "before=rocket:rs"})
-	e5 := order([]string{"from=2m to=2020-05-19", "after=alpine:3.9"})
-	e6 := order([]string{})
+	e1 := test_helper.Order([]string{"from=golang:latest to=golang:5"})
+	e2 := test_helper.Order([]string{"before=6h2m"})
+	e3 := test_helper.Order([]string{"after=2020/07/09 18:00"})
+	e4 := test_helper.Order([]string{"after=1h2s", "before=rocket:rs"})
+	e5 := test_helper.Order([]string{"from=2m to=2020-05-19", "after=alpine:3.9"})
+	e6 := test_helper.Order([]string{})
 
 	// test
 	_, _, _, tq1, _, _ := parseFilters("from=golang:latest to=golang:5", "ref=a", "ref=narwhal/*")
@@ -101,24 +101,24 @@ func (s *ImageFilterSuite) Test_Catching_TimeQuery() {
 	_, _, _, tq5, _, _ := parseFilters("from=2m to=2020-05-19", "after=alpine:3.9", "label=a")
 	_, _, _, tq6, _, _ := parseFilters("label=a")
 
-	assert.Equal(e1, order(tq1))
-	assert.Equal(e2, order(tq2))
-	assert.Equal(e3, order(tq3))
-	assert.Equal(e4, order(tq4))
-	assert.Equal(e5, order(tq5))
-	assert.Equal(e6, order(tq6))
+	assert.Equal(e1, test_helper.Order(tq1))
+	assert.Equal(e2, test_helper.Order(tq2))
+	assert.Equal(e3, test_helper.Order(tq3))
+	assert.Equal(e4, test_helper.Order(tq4))
+	assert.Equal(e5, test_helper.Order(tq5))
+	assert.Equal(e6, test_helper.Order(tq6))
 
 }
 
 func (s *ImageFilterSuite) Test_Catching_Remainders() {
 	assert := a.New(s.T())
 
-	e1 := order([]string{"--format", "{{.Tag}}"})
-	e2 := order([]string{"-a"})
-	e3 := order([]string{"--all", "--digests"})
-	e4 := order([]string{"--no-trunc"})
-	e5 := order([]string{})
-	e6 := order([]string{"-aq"})
+	e1 := test_helper.Order([]string{"--format", "{{.Tag}}"})
+	e2 := test_helper.Order([]string{"-a"})
+	e3 := test_helper.Order([]string{"--all", "--digests"})
+	e4 := test_helper.Order([]string{"--no-trunc"})
+	e5 := test_helper.Order([]string{})
+	e6 := test_helper.Order([]string{"-aq"})
 
 	// test
 	_, _, _, _, remain1, _ := parseFilters("--format", "{{.Tag}}", "from=golang:latest to=golang:5", "ref=a", "ref=narwhal/*")
@@ -128,16 +128,11 @@ func (s *ImageFilterSuite) Test_Catching_Remainders() {
 	_, _, _, _, remain5, _ := parseFilters("from=2m to=2020-05-19", "after=alpine:3.9", "label=a")
 	_, _, _, _, remain6, _ := parseFilters("label=a", "-aq")
 
-	assert.Equal(e1, order(remain1))
-	assert.Equal(e2, order(remain2))
-	assert.Equal(e3, order(remain3))
-	assert.Equal(e4, order(remain4))
-	assert.Equal(e5, order(remain5))
-	assert.Equal(e6, order(remain6))
+	assert.Equal(e1, test_helper.Order(remain1))
+	assert.Equal(e2, test_helper.Order(remain2))
+	assert.Equal(e3, test_helper.Order(remain3))
+	assert.Equal(e4, test_helper.Order(remain4))
+	assert.Equal(e5, test_helper.Order(remain5))
+	assert.Equal(e6, test_helper.Order(remain6))
 
-}
-
-func order(in []string) []string {
-	sort.Strings(in)
-	return in
 }

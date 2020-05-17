@@ -257,12 +257,12 @@ func (n *Narwhal) DeployAuto(stack string, file string, unsafe bool) []string {
 
 }
 
-func (n *Narwhal) Run(context, file, image string) []string {
+func (n *Narwhal) Run(context, file, image, name string) []string {
 	err := n.docker.Build(context, file, image)
 	if len(err) > 0 {
 		return err
 	}
-	return n.docker.Run(image)
+	return n.docker.Run(image, name)
 }
 
 func (n *Narwhal) Images(filter ...string) (images.Images, []string, []string) {
@@ -287,4 +287,28 @@ func (n *Narwhal) Images(filter ...string) (images.Images, []string, []string) {
 	left := x.ProcessQuery(queries)
 	return left, remaining, []string{}
 
+}
+
+func (n *Narwhal) RemoveImage(filter ...string) []string {
+	images, remain, err := n.Images(filter...)
+	if len(err) > 0 {
+		return err
+	}
+
+	if len(remain) > 0 {
+		return append([]string{"unknown commands"}, remain...)
+	}
+
+	if len(images) == 0 {
+		n.Print("no image was removed")
+		return nil
+	}
+
+	args := []string{"rmi"}
+	for _, v := range images {
+		args = append(args, v.Name)
+	}
+
+	remove := n.cmd.Create("docker", args...)
+	return remove.Run()
 }
