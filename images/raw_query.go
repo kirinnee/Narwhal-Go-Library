@@ -96,9 +96,27 @@ func IsTimeQuery(s string) bool {
 		strings.HasPrefix(s, "before=")
 }
 
-func newRawQueryParser(rq []RawQuery) *RawQueryParser {
+func New(s ...string) (*RawQueryParser, error) {
+
+	all := make([][]RawQuery, 0, 10)
+	for _, v := range s {
+		raw, err := parseRawQuery(v)
+		if err != nil {
+			return nil, err
+		}
+		all = append(all, raw)
+	}
+	return newRawQueryParser(all...), nil
+
+}
+
+func newRawQueryParser(rq ...[]RawQuery) *RawQueryParser {
+	raw := make([]RawQuery, 0, 100)
+	for _, v := range rq {
+		raw = append(raw, v...)
+	}
 	return &RawQueryParser{
-		raw:  rq,
+		raw:  raw,
 		done: []TimeQuery{},
 	}
 }

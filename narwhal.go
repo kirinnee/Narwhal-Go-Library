@@ -4,6 +4,7 @@ import (
 	"github.com/google/uuid"
 	"gitlab.com/kiringo/narwhal_lib/command"
 	"gitlab.com/kiringo/narwhal_lib/docker"
+	"gitlab.com/kiringo/narwhal_lib/images"
 	"log"
 	"path/filepath"
 )
@@ -262,4 +263,28 @@ func (n *Narwhal) Run(context, file, image string) []string {
 		return err
 	}
 	return n.docker.Run(image)
+}
+
+func (n *Narwhal) Images(filter ...string) (images.Images, []string, []string) {
+	label, dangle, ref, tq, remaining, err := parseFilters(filter...)
+	if len(err) > 0 {
+		return nil, nil, err
+	}
+	i, err := n.docker.Images(dangle, label, ref)
+	if len(err) > 0 {
+		return nil, nil, err
+	}
+	all, err := n.docker.Images("", "", []string{})
+	queryParser, e := images.New(tq...)
+	if e != nil {
+		return nil, nil, []string{e.Error()}
+	}
+	queries, e := queryParser.Parse(all)
+	if e != nil {
+		return nil, nil, []string{e.Error()}
+	}
+	var x images.Images = i
+	left := x.ProcessQuery(queries)
+	return left, remaining, []string{}
+
 }
