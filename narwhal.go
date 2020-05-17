@@ -12,7 +12,7 @@ import (
 type Narwhal struct {
 	quiet  bool
 	docker docker.Docker
-	cmd    command.Creator
+	Cmd    command.Creator
 }
 
 func New(quiet bool) *Narwhal {
@@ -23,7 +23,7 @@ func NewCustom(quiet bool, factory command.Creator) *Narwhal {
 	return &Narwhal{
 		quiet:  quiet,
 		docker: docker.New(quiet, factory),
-		cmd:    factory,
+		Cmd:    factory,
 	}
 }
 
@@ -40,7 +40,7 @@ func (n *Narwhal) Load(volume string, tarPath string) []string {
 	}
 	var errors []string
 	name := "narwhal-mount" + "abc" + id.String()
-	c := Container{name, n.quiet, n.cmd}
+	c := Container{name, n.quiet, n.Cmd}
 
 	n.Print("Creating container to connect to volume...")
 	s := c.Start("alpine", volume, "/home/data", "dt")
@@ -105,7 +105,7 @@ func (n *Narwhal) Save(volume string, tarName string, path string) []string {
 
 	zipped := tarName + ".tar.gz"
 	name := "narwhal-mount" + "abc" + id.String()
-	c := Container{name, n.quiet, n.cmd}
+	c := Container{name, n.quiet, n.Cmd}
 
 	n.Print("Creating container to connect to volume...")
 	s := c.Start("alpine", volume, "/home/data", "dt")
@@ -169,7 +169,7 @@ func (n *Narwhal) KillAll() []string {
 
 	containers = append([]string{"kill"}, containers...)
 
-	kill := n.cmd.Create("docker", containers...)
+	kill := n.Cmd.Create("docker", containers...)
 	errs := kill.Run()
 	if len(errs) != 0 {
 		return errs
@@ -193,7 +193,7 @@ func (n *Narwhal) RemoveAll() []string {
 
 	containers = append([]string{"rm"}, containers...)
 
-	return n.cmd.Create("docker", containers...).Run()
+	return n.Cmd.Create("docker", containers...).Run()
 }
 
 func (n *Narwhal) StopAll() []string {
@@ -211,7 +211,7 @@ func (n *Narwhal) StopAll() []string {
 
 	containers = append([]string{"stop"}, containers...)
 
-	return n.cmd.Create("docker", containers...).Run()
+	return n.Cmd.Create("docker", containers...).Run()
 }
 
 func (n *Narwhal) Deploy(stack string, file string) []string {
@@ -223,7 +223,7 @@ func (n *Narwhal) Deploy(stack string, file string) []string {
 	for k, v := range compose.Images {
 		n.docker.Build(v.Context, v.File, k)
 	}
-	deploy := n.cmd.Create("docker", "stack", "deploy", "--prune", "--with-registry-auth", "--compose-file", "-", "--resolve-image", "always", stack)
+	deploy := n.Cmd.Create("docker", "stack", "deploy", "--prune", "--with-registry-auth", "--compose-file", "-", "--resolve-image", "always", stack)
 	err = deploy.Write(b)
 	if err != nil {
 		return []string{err.Error()}
@@ -233,11 +233,11 @@ func (n *Narwhal) Deploy(stack string, file string) []string {
 
 func (n *Narwhal) DeployAuto(stack string, file string, unsafe bool) []string {
 
-	stackExist := n.cmd.Create("docker", "stack", "ls").Run()
+	stackExist := n.Cmd.Create("docker", "stack", "ls").Run()
 
 	if len(stackExist) > 0 {
 		n.Print("Docker not in swarm mode... starting in swarm mode")
-		err := n.cmd.Create("docker", "swarm", "init").Run()
+		err := n.Cmd.Create("docker", "swarm", "init").Run()
 		if len(err) > 0 {
 			return err
 		}
@@ -251,8 +251,8 @@ func (n *Narwhal) DeployAuto(stack string, file string, unsafe bool) []string {
 		n.Print(v)
 	}
 	n.Print("Stack could not be deploy... automatically re-initialize swarm...")
-	n.cmd.Create("docker", "swarm", "leave", "--force").Run()
-	n.cmd.Create("docker", "swarm", "init").Run()
+	n.Cmd.Create("docker", "swarm", "leave", "--force").Run()
+	n.Cmd.Create("docker", "swarm", "init").Run()
 	return n.Deploy(stack, file)
 
 }
@@ -309,6 +309,6 @@ func (n *Narwhal) RemoveImage(filter ...string) []string {
 		args = append(args, v.Name)
 	}
 
-	remove := n.cmd.Create("docker", args...)
+	remove := n.Cmd.Create("docker", args...)
 	return remove.Run()
 }
