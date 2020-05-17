@@ -2,24 +2,26 @@ package narwhal_lib
 
 import (
 	"github.com/google/uuid"
+	"gitlab.com/kiringo/narwhal_lib/command"
+	"gitlab.com/kiringo/narwhal_lib/docker"
 	"log"
 	"path/filepath"
 )
 
 type Narwhal struct {
 	quiet  bool
-	docker Docker
-	cmd    CommandCreator
+	docker docker.Docker
+	cmd    command.Creator
 }
 
 func New(quiet bool) *Narwhal {
-	return NewCustom(quiet, CommandFactory{quiet: quiet})
+	return NewCustom(quiet, command.NewFactory(quiet))
 }
 
-func NewCustom(quiet bool, factory CommandCreator) *Narwhal {
+func NewCustom(quiet bool, factory command.Creator) *Narwhal {
 	return &Narwhal{
 		quiet:  quiet,
-		docker: Docker{quiet: quiet, cmd: factory},
+		docker: docker.New(quiet, factory),
 		cmd:    factory,
 	}
 }

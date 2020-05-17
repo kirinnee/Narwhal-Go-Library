@@ -1,8 +1,9 @@
-package narwhal_lib
+package test_helper
 
 import (
 	"context"
 	"fmt"
+	"gitlab.com/kiringo/narwhal_lib/command"
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
 	"os/exec"
@@ -16,16 +17,16 @@ type (
 	}
 
 	TestCommandFactory struct {
-		output []string
+		Output []string
 	}
 )
 
-func (c *TestCommandFactory) Create(command string, arg ...string) Executable {
-	return &TestCommand{cmd: exec.Command(command, arg...), factory: c}
+func (c *TestCommandFactory) Create(cmd string, arg ...string) command.Executable {
+	return &TestCommand{cmd: exec.Command(cmd, arg...), factory: c}
 }
 
-func (command *TestCommand) Write(b []byte) error {
-	pipe, err := command.cmd.StdinPipe()
+func (c *TestCommand) Write(b []byte) error {
+	pipe, err := c.cmd.StdinPipe()
 	if err != nil {
 		return err
 	}
@@ -40,35 +41,35 @@ func (command *TestCommand) Write(b []byte) error {
 	return nil
 }
 
-func (command *TestCommand) CustomRun(outEvent OutputEvent, errEvent OutputEvent) string {
+func (c *TestCommand) CustomRun(outEvent command.OutputEvent, errEvent command.OutputEvent) string {
 
-	stdout, err := command.cmd.StdoutPipe()
+	stdout, err := c.cmd.StdoutPipe()
 	if err != nil {
 		return err.Error()
 	}
-	stderr, err := command.cmd.StderrPipe()
+	stderr, err := c.cmd.StderrPipe()
 	if err != nil {
 		return err.Error()
 	}
 
-	pipe(stdout, outEvent)
-	pipe(stderr, errEvent)
+	command.Pipe(stdout, outEvent)
+	command.Pipe(stderr, errEvent)
 
-	err = command.cmd.Start()
+	err = c.cmd.Start()
 	if err != nil {
 		return err.Error()
 	}
-	err = command.cmd.Wait()
+	err = c.cmd.Wait()
 	if err != nil {
 		return err.Error()
 	}
 	return ""
 }
 
-func (command *TestCommand) Run() []string {
+func (c *TestCommand) Run() []string {
 	errs := make([]string, 0, 10)
-	others := command.CustomRun(func(s string) {
-		command.factory.output = append(command.factory.output, s)
+	others := c.CustomRun(func(s string) {
+		c.factory.Output = append(c.factory.Output, s)
 	}, func(s string) {
 		errs = append(errs, s)
 	})
@@ -78,10 +79,10 @@ func (command *TestCommand) Run() []string {
 	return append(errs, others)
 }
 
-func helpRun(command string, arg ...string) []string {
+func HelpRun(c string, arg ...string) []string {
 	ret := make([]string, 0, 10)
-	f := CommandFactory{quiet: false}
-	f.Create(command, arg...).CustomRun(func(s string) {
+	f := TestCommandFactory{[]string{}}
+	f.Create(c, arg...).CustomRun(func(s string) {
 		ret = append(ret, s)
 	}, func(s string) {
 		ret = append(ret, s)
@@ -89,7 +90,20 @@ func helpRun(command string, arg ...string) []string {
 	return ret
 }
 
-func helpRunPrint(command string) string {
+func HelpRunQ(command string) string {
+	ctx := context.Background()
+	runner, _ := interp.New(interp.StdIO(nil, nil, nil))
+
+	f, _ := syntax.NewParser().Parse(strings.NewReader(command), "")
+
+	err := runner.Run(ctx, f)
+	if err != nil {
+		return err.Error()
+	}
+	return ""
+}
+
+func HelpRunPrint(command string) string {
 	ctx := context.Background()
 	runner, _ := interp.New(interp.StdIO(nil, LogWriter{}, LogWriter{}))
 

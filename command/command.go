@@ -1,4 +1,4 @@
-package narwhal_lib
+package command
 
 import (
 	"bufio"
@@ -13,12 +13,16 @@ type (
 		quiet bool
 	}
 
-	CommandFactory struct {
+	Factory struct {
 		quiet bool
 	}
 )
 
-func (c CommandFactory) Create(command string, arg ...string) Executable {
+func NewFactory(quiet bool) Factory {
+	return Factory{quiet}
+}
+
+func (c Factory) Create(command string, arg ...string) Executable {
 	return &Command{quiet: c.quiet, cmd: exec.Command(command, arg...)}
 
 }
@@ -39,7 +43,7 @@ func (command *Command) Write(b []byte) error {
 	return nil
 }
 
-func pipe(pipe io.ReadCloser, event OutputEvent) {
+func Pipe(pipe io.ReadCloser, event OutputEvent) {
 	scanner := bufio.NewScanner(pipe)
 	go func() {
 		for scanner.Scan() {
@@ -61,8 +65,8 @@ func (command *Command) CustomRun(outEvent OutputEvent, errEvent OutputEvent) st
 		return err.Error()
 	}
 
-	pipe(stdout, outEvent)
-	pipe(stderr, errEvent)
+	Pipe(stdout, outEvent)
+	Pipe(stderr, errEvent)
 
 	err = command.cmd.Start()
 	if err != nil {

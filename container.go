@@ -1,9 +1,11 @@
 package narwhal_lib
 
+import "gitlab.com/kiringo/narwhal_lib/command"
+
 type Container struct {
 	name  string
 	quiet bool
-	cmd   CommandCreator
+	cmd   command.Creator
 }
 
 func (c Container) Start(image string, mount string, mountTarget string, flags string) []string {

@@ -1,4 +1,4 @@
-package narwhal_lib
+package command
 
 type (
 	Executable interface {
@@ -7,7 +7,7 @@ type (
 		Run() []string
 	}
 
-	CommandCreator interface {
+	Creator interface {
 		Create(command string, arg ...string) Executable
 	}
 

@@ -2,7 +2,7 @@
   <configuration default="false" name="Tests" type="GoTestRunConfiguration" factoryName="Go Test">
     <module name="narwhal_lib" />
     <working_directory value="$PROJECT_DIR$/" />
-    <go_parameters value="-i" />
+    <go_parameters value="-i --short" />
     <framework value="gotest" />
     <kind value="DIRECTORY" />
     <package value="gitlab.com/kiringo/narwhal_lib" />
