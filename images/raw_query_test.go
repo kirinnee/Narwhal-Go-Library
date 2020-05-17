@@ -28,7 +28,7 @@ func (s *RawQuerySuite) Test_ParseRawQuery_After_Relative() {
 	assert := a.New(s.T())
 
 	raw, err := parseRawQuery("after=6m2s")
-	expected := newRawQueryParser([]RawQuery{{query: AFTER, time: "6m2s"}})
+	expected := []RawQuery{{query: AFTER, time: "6m2s"}}
 
 	assert.Nil(err)
 	assert.Equal(raw, expected)
@@ -38,10 +38,10 @@ func (s *RawQuerySuite) Test_ParseRawQuery_After_Absolute() {
 	assert := a.New(s.T())
 
 	raw1, err1 := parseRawQuery("after=2020/05/07")
-	expected1 := newRawQueryParser([]RawQuery{{query: AFTER, time: "2020/05/07"}})
+	expected1 := []RawQuery{{query: AFTER, time: "2020/05/07"}}
 
 	raw2, err2 := parseRawQuery("after=2020-01-03 09:21:37 +0800 +08")
-	expected2 := newRawQueryParser([]RawQuery{{query: AFTER, time: "2020-01-03 09:21:37 +0800 +08"}})
+	expected2 := []RawQuery{{query: AFTER, time: "2020-01-03 09:21:37 +0800 +08"}}
 
 	assert.Nil(err1)
 	assert.Nil(err2)
@@ -53,10 +53,10 @@ func (s *RawQuerySuite) Test_ParseRawQuery_After_Image() {
 	assert := a.New(s.T())
 
 	raw1, err1 := parseRawQuery("after=alpine:latest")
-	expected1 := newRawQueryParser([]RawQuery{{query: AFTER, time: "alpine:latest"}})
+	expected1 := []RawQuery{{query: AFTER, time: "alpine:latest"}}
 
 	raw2, err2 := parseRawQuery("after=ubuntu:tag")
-	expected2 := newRawQueryParser([]RawQuery{{query: AFTER, time: "ubuntu:tag"}})
+	expected2 := []RawQuery{{query: AFTER, time: "ubuntu:tag"}}
 
 	assert.Nil(err1)
 	assert.Nil(err2)
@@ -68,7 +68,7 @@ func (s *RawQuerySuite) Test_ParseRawQuery_Before_Relative() {
 	assert := a.New(s.T())
 
 	raw, err := parseRawQuery("before=6m2s")
-	expected := newRawQueryParser([]RawQuery{{query: BEFORE, time: "6m2s"}})
+	expected := []RawQuery{{query: BEFORE, time: "6m2s"}}
 
 	assert.Nil(err)
 	assert.Equal(raw, expected)
@@ -78,10 +78,10 @@ func (s *RawQuerySuite) Test_ParseRawQuery_Before_Absolute() {
 	assert := a.New(s.T())
 
 	raw1, err1 := parseRawQuery("before=2020/05/07")
-	expected1 := newRawQueryParser([]RawQuery{{query: BEFORE, time: "2020/05/07"}})
+	expected1 := []RawQuery{{query: BEFORE, time: "2020/05/07"}}
 
 	raw2, err2 := parseRawQuery("before=2020-01-03 09:21:37 +0800 +08")
-	expected2 := newRawQueryParser([]RawQuery{{query: BEFORE, time: "2020-01-03 09:21:37 +0800 +08"}})
+	expected2 := []RawQuery{{query: BEFORE, time: "2020-01-03 09:21:37 +0800 +08"}}
 
 	assert.Nil(err1)
 	assert.Nil(err2)
@@ -93,10 +93,10 @@ func (s *RawQuerySuite) Test_ParseRawQuery_Before_Image() {
 	assert := a.New(s.T())
 
 	raw1, err1 := parseRawQuery("before=alpine:latest")
-	expected1 := newRawQueryParser([]RawQuery{{query: BEFORE, time: "alpine:latest"}})
+	expected1 := []RawQuery{{query: BEFORE, time: "alpine:latest"}}
 
 	raw2, err2 := parseRawQuery("before=ubuntu:tag")
-	expected2 := newRawQueryParser([]RawQuery{{query: BEFORE, time: "ubuntu:tag"}})
+	expected2 := []RawQuery{{query: BEFORE, time: "ubuntu:tag"}}
 
 	assert.Nil(err1)
 	assert.Nil(err2)
@@ -109,13 +109,13 @@ func (s *RawQuerySuite) Test_ParseRawQuery_From() {
 
 	raw, err := parseRawQuery("from=2020-01-03 09:21:37 +0800 +08 to=image:latest")
 
-	expected := newRawQueryParser([]RawQuery{{
+	expected := []RawQuery{{
 		query: AFTER,
 		time:  "2020-01-03 09:21:37 +0800 +08",
 	}, {
 		query: BEFORE,
 		time:  "image:latest",
-	}})
+	}}
 
 	assert.Nil(err)
 	assert.Equal(raw, expected)

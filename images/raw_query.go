@@ -103,7 +103,14 @@ func newRawQueryParser(rq []RawQuery) *RawQueryParser {
 	}
 }
 
-func parseRawQuery(s string) (*RawQueryParser, error) {
+func (r *RawQueryParser) Parse(images []docker.Image) ([]TimeQuery, error) {
+	r.parseImage(images)
+	r.parseTime()
+	r.parseDuration(time.Now())
+	return r.resolve()
+}
+
+func parseRawQuery(s string) ([]RawQuery, error) {
 	if !IsTimeQuery(s) {
 		return nil, errors.New("not a time query")
 	}
@@ -111,23 +118,23 @@ func parseRawQuery(s string) (*RawQueryParser, error) {
 		q := strings.Split(s, " to=")
 		from := strings.Replace(q[0], "from=", "", 1)
 		to := q[1]
-		return newRawQueryParser([]RawQuery{{
+		return []RawQuery{{
 			time:  from,
 			query: AFTER,
 		}, {
 			time:  to,
 			query: BEFORE,
 		},
-		}), nil
+		}, nil
 	} else if strings.HasPrefix(s, "after=") {
-		return newRawQueryParser([]RawQuery{{
+		return []RawQuery{{
 			time:  strings.Split(s, "=")[1],
 			query: AFTER,
-		}}), nil
+		}}, nil
 	} else {
-		return newRawQueryParser([]RawQuery{{
+		return []RawQuery{{
 			time:  strings.Split(s, "=")[1],
 			query: BEFORE,
-		}}), nil
+		}}, nil
 	}
 }
