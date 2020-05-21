@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strconv"
+	"strings"
 )
 
 type Compose struct {
@@ -49,43 +50,16 @@ func parse(file string) (b []byte, compose Compose, err error) {
 		for k, v := range images {
 			var build Builds
 			build, err = parseConfig(v)
-			//key := k + "_NARWHAL_COUNT"
-			//version := os.Getenv(key)
-			//versionNumber := 0
-			//vn, atoiErr := strconv.Atoi(version)
-			//if atoiErr == nil {
-			//	versionNumber = vn
-			//}
 
-			var version = make(map[string]int)
-			versionNumber := 0
-			bytes, e := ioutil.ReadFile("./.narwhal_states")
-			if e == nil {
-				err = json.Unmarshal(bytes, &version)
+			imageName := k
+			if !strings.Contains(imageName, ":") {
+				versionNumber, err := getVersionNumber(k)
 				if err != nil {
-					_, err = os.Create("./.narwhal_states")
-					if err != nil {
-						return
-					}
+					return
 				}
+				imageName = k + ":" + strconv.Itoa(versionNumber)
+				changeOut[k] = imageName
 			}
-
-			if vn, okok := version[k]; okok {
-				versionNumber = vn + 1
-			}
-			version[k] = versionNumber
-
-			b, err = json.Marshal(&version)
-			if err != nil {
-				return
-			}
-			err = ioutil.WriteFile("./.narwhal_states", b, 0644)
-			if err != nil {
-				return
-			}
-
-			imageName := k + ":" + strconv.Itoa(versionNumber)
-			changeOut[k] = imageName
 			out[imageName] = build
 		}
 		delete(m, "images")
@@ -109,6 +83,37 @@ func parse(file string) (b []byte, compose Compose, err error) {
 	b, err = yml.Marshal(&m)
 	return b, Compose{out}, nil
 
+}
+
+func getVersionNumber(k string) (i int, err error) {
+	// enabled versioning
+	var version = make(map[string]int)
+	versionNumber := 0
+	bytes, e := ioutil.ReadFile("./.narwhal_states")
+	if e == nil {
+		err = json.Unmarshal(bytes, &version)
+		if err != nil {
+			_, err = os.Create("./.narwhal_states")
+			if err != nil {
+				return
+			}
+		}
+	}
+
+	if vn, okok := version[k]; okok {
+		versionNumber = vn + 1
+	}
+	version[k] = versionNumber
+
+	b, err := json.Marshal(&version)
+	if err != nil {
+		return
+	}
+	err = ioutil.WriteFile("./.narwhal_states", b, 0644)
+	if err != nil {
+		return
+	}
+	return versionNumber, nil
 }
 
 func breakdownToMap(a interface{}) (map[string]map[string]interface{}, error) {
