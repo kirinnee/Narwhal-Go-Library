@@ -126,6 +126,8 @@ images:
   ror:latest:
 ```
 
+
+
 ### Deploy a stack with swarm in auto mode
 `Deploy(<stack name>, <compose file name>, <unsafe>)`
 This mode will automatically initialize swarm if its is not in swarm mode.
@@ -139,6 +141,18 @@ if len(err) > 0 {
     //handle error here
 }
 ```
+### Remove a stack in swarm mod
+`StopStack(<stack name>, <file name>)`
+This will try to stop the stack with the stack name. If the stack name cannot be found, 
+if will try to read the file for the "stack attribute" and try to stop the stack
+
+```go
+err := narwhal.StopStack("app", "docker-compose.yml", false)
+if len(err) > 0 {
+    //handle error here
+}
+```
+
 
 ### Build and Run Workspace 
 `Run(<build context>, <dockerfile>, <image name>, <container name>)`

@@ -300,6 +300,25 @@ func (n *Narwhal) Images(filter ...string) (images.Images, []string, []string) {
 
 }
 
+func (n *Narwhal) StopStack(stack string, file string) []string {
+
+	if file != "" {
+		_, _, ss, err := parse(file)
+		if err != nil {
+			return []string{err.Error()}
+		}
+		if stack == "" {
+			stack = ss
+		}
+	}
+
+	if stack == "" {
+		return []string{"no stack name returned"}
+	}
+
+	return n.Cmd.Create("docker", "stack", "rm", stack).Run()
+}
+
 func (n *Narwhal) RemoveImage(filter ...string) []string {
 	images, remain, err := n.Images(filter...)
 	if len(err) > 0 {

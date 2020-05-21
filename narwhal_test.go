@@ -107,7 +107,7 @@ func (s *NarwhalSuite) Test_DeployAuto() {
 	fmt.Println(err)
 	stack := test_helper.HelpRun("docker", "stack", "ls")
 	container := test_helper.HelpRun("docker", "ps", "--format", "\"{{.Names}}\"")
-	time.Sleep(time.Second * 10)
+	time.Sleep(time.Second * 5)
 	for i, v := range container {
 		container[i] = string([]rune(v)[:18])
 	}
@@ -120,7 +120,7 @@ func (s *NarwhalSuite) Test_DeployAuto() {
 
 }
 
-func (s *NarwhalSuite) Test_DeployAuto_with_embbed_stack_name() {
+func (s *NarwhalSuite) Test_DeployAuto_with_embedded_stack_name() {
 	assert := a.New(s.T())
 
 	// Test
@@ -128,7 +128,7 @@ func (s *NarwhalSuite) Test_DeployAuto_with_embbed_stack_name() {
 	fmt.Println(err)
 	stack := test_helper.HelpRun("docker", "stack", "ls")
 	container := test_helper.HelpRun("docker", "ps", "--format", "\"{{.Names}}\"")
-	time.Sleep(time.Second * 10)
+	time.Sleep(time.Second * 5)
 	for i, v := range container {
 		container[i] = string([]rune(v)[:18])
 	}
@@ -138,6 +138,57 @@ func (s *NarwhalSuite) Test_DeployAuto_with_embbed_stack_name() {
 	for _, v := range container {
 		assert.Equal(v, `"help-stack_rocket.`)
 	}
+}
+
+func (s *NarwhalSuite) Test_RemoveStack() {
+	assert := a.New(s.T())
+
+	// Setup
+	err := s.n.DeployAuto("test-stack", "stack.yml", false)
+	fmt.Println(err)
+	assert.Empty(err)
+	stack := test_helper.HelpRun("docker", "stack", "ls")
+	container := test_helper.HelpRun("docker", "ps", "--format", "\"{{.Names}}\"")
+	time.Sleep(time.Second * 5)
+	for i, v := range container {
+		container[i] = string([]rune(v)[:18])
+	}
+	assert.Len(stack, 2)
+
+	//test
+	err = s.n.StopStack("test-stack", "")
+	fmt.Println(err)
+	assert.Empty(err)
+
+	// Assert
+	left := test_helper.HelpRun("docker", "stack", "ls")
+	assert.Len(left, 1)
+
+}
+
+func (s *NarwhalSuite) Test_RemoveStack_embedded() {
+	assert := a.New(s.T())
+
+	// Setup
+	err := s.n.DeployAuto("", "stack2.yml", false)
+	fmt.Println(err)
+	assert.Empty(err)
+	stack := test_helper.HelpRun("docker", "stack", "ls")
+	container := test_helper.HelpRun("docker", "ps", "--format", "\"{{.Names}}\"")
+	time.Sleep(time.Second * 5)
+	for i, v := range container {
+		container[i] = string([]rune(v)[:18])
+	}
+	assert.Len(stack, 2)
+
+	//test
+	err = s.n.StopStack("", "stack2.yml")
+	fmt.Println(err)
+	assert.Empty(err)
+
+	// Assert
+	left := test_helper.HelpRun("docker", "stack", "ls")
+	assert.Len(left, 1)
 
 }
 
