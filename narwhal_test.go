@@ -1,6 +1,7 @@
 package narwhal_lib
 
 import (
+	"fmt"
 	a "github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"gitlab.com/kiringo/narwhal_lib/test_helper"
@@ -102,7 +103,8 @@ func (s *NarwhalSuite) Test_DeployAuto() {
 	assert := a.New(s.T())
 
 	// Test
-	s.n.DeployAuto("test-stack", "stack.yml", false)
+	err := s.n.DeployAuto("test-stack", "stack.yml", false)
+	fmt.Println(err)
 	stack := test_helper.HelpRun("docker", "stack", "ls")
 	container := test_helper.HelpRun("docker", "ps", "--format", "\"{{.Names}}\"")
 	time.Sleep(time.Second * 10)

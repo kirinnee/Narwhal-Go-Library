@@ -1,8 +1,11 @@
 package narwhal_lib
 
 import (
+	"encoding/json"
 	yml "gopkg.in/yaml.v2"
 	"io/ioutil"
+	"os"
+	"strconv"
 )
 
 type Compose struct {
@@ -36,6 +39,9 @@ func parse(file string) (b []byte, compose Compose, err error) {
 	}
 
 	out := make(map[string]Builds)
+
+	changeOut := make(map[string]string)
+
 	//parse compose here
 	if value, ok := m["images"]; ok {
 		var images map[string][]byte
@@ -43,12 +49,79 @@ func parse(file string) (b []byte, compose Compose, err error) {
 		for k, v := range images {
 			var build Builds
 			build, err = parseConfig(v)
-			out[k] = build
+			//key := k + "_NARWHAL_COUNT"
+			//version := os.Getenv(key)
+			//versionNumber := 0
+			//vn, atoiErr := strconv.Atoi(version)
+			//if atoiErr == nil {
+			//	versionNumber = vn
+			//}
+
+			var version = make(map[string]int)
+			versionNumber := 0
+			bytes, e := ioutil.ReadFile("./.narwhal_states")
+			if e == nil {
+				err = json.Unmarshal(bytes, &version)
+				if err != nil {
+					_, err = os.Create("./.narwhal_states")
+					if err != nil {
+						return
+					}
+				}
+			}
+
+			if vn, okok := version[k]; okok {
+				versionNumber = vn + 1
+			}
+			version[k] = versionNumber
+
+			b, err = json.Marshal(&version)
+			if err != nil {
+				return
+			}
+			err = ioutil.WriteFile("./.narwhal_states", b, 0644)
+			if err != nil {
+				return
+			}
+
+			imageName := k + ":" + strconv.Itoa(versionNumber)
+			changeOut[k] = imageName
+			out[imageName] = build
 		}
 		delete(m, "images")
 	}
+
+	//parse compose here
+	if value, ok := m["services"]; ok {
+		var services map[string]map[string]interface{}
+		services, err = breakdownToMap(value)
+		for k, v := range services {
+			if image, ok2 := v["image"]; ok2 {
+				i := image.(string)
+				if imageName, ok3 := changeOut[i]; ok3 {
+					services[k]["image"] = imageName
+				}
+			}
+		}
+		m["services"] = services
+	}
+
 	b, err = yml.Marshal(&m)
 	return b, Compose{out}, nil
+
+}
+
+func breakdownToMap(a interface{}) (map[string]map[string]interface{}, error) {
+	b, err := yml.Marshal(&a)
+	if err != nil {
+		return nil, err
+	}
+	var data map[string]map[string]interface{}
+	err = yml.Unmarshal(b, &data)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
 
 }
 

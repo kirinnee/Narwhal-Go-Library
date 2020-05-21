@@ -3,7 +3,7 @@ version: '3.8'
 
 services:
   rocket:
-    image: rocket:latest
+    image: rocket
     ports:
       - 8000:8000
     deploy:
@@ -11,7 +11,7 @@ services:
 
 
 images:
-  rocket:latest:
+  rocket:
     context: rocket
     file: df
 

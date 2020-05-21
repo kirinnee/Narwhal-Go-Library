@@ -1,6 +1,7 @@
 package narwhal_lib
 
 import (
+	"fmt"
 	"github.com/google/uuid"
 	"gitlab.com/kiringo/narwhal_lib/command"
 	"gitlab.com/kiringo/narwhal_lib/docker"
@@ -217,13 +218,17 @@ func (n *Narwhal) StopAll() []string {
 func (n *Narwhal) Deploy(stack string, file string) []string {
 
 	b, compose, err := parse(file)
+	fmt.Println(string(b))
 	if err != nil {
 		return []string{err.Error()}
 	}
 	for k, v := range compose.Images {
-		n.docker.Build(v.Context, v.File, k)
+		err := n.docker.Build(v.Context, v.File, k)
+		if len(err) > 0 {
+			return err
+		}
 	}
-	deploy := n.Cmd.Create("docker", "stack", "deploy", "--prune", "--with-registry-auth", "--compose-file", "-", "--resolve-image", "always", stack)
+	deploy := n.Cmd.Create("docker", "stack", "deploy", "--prune", "--with-registry-auth", "--compose-file", "-", "--resolve-image", "changed", stack)
 	err = deploy.Write(b)
 	if err != nil {
 		return []string{err.Error()}
