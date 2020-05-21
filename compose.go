@@ -53,8 +53,8 @@ func parse(file string) (b []byte, compose Compose, err error) {
 
 			imageName := k
 			if !strings.Contains(imageName, ":") {
-				versionNumber, err := getVersionNumber(k)
-				if err != nil {
+				versionNumber, ee := getVersionNumber(k)
+				if ee != nil {
 					return
 				}
 				imageName = k + ":" + strconv.Itoa(versionNumber)
