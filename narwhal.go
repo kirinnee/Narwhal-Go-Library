@@ -1,7 +1,6 @@
 package narwhal_lib
 
 import (
-	"fmt"
 	"github.com/google/uuid"
 	"gitlab.com/kiringo/narwhal_lib/command"
 	"gitlab.com/kiringo/narwhal_lib/docker"
@@ -217,8 +216,15 @@ func (n *Narwhal) StopAll() []string {
 
 func (n *Narwhal) Deploy(stack string, file string) []string {
 
-	b, compose, err := parse(file)
-	fmt.Println(string(b))
+	b, compose, ss, err := parse(file)
+
+	if stack == "" {
+		stack = ss
+	}
+	if stack == "" {
+		return []string{"no stack name returned"}
+	}
+
 	if err != nil {
 		return []string{err.Error()}
 	}

@@ -120,6 +120,27 @@ func (s *NarwhalSuite) Test_DeployAuto() {
 
 }
 
+func (s *NarwhalSuite) Test_DeployAuto_with_embbed_stack_name() {
+	assert := a.New(s.T())
+
+	// Test
+	err := s.n.DeployAuto("", "stack2.yml", false)
+	fmt.Println(err)
+	stack := test_helper.HelpRun("docker", "stack", "ls")
+	container := test_helper.HelpRun("docker", "ps", "--format", "\"{{.Names}}\"")
+	time.Sleep(time.Second * 10)
+	for i, v := range container {
+		container[i] = string([]rune(v)[:18])
+	}
+
+	// Assert
+	assert.Len(stack, 2)
+	for _, v := range container {
+		assert.Equal(v, `"help-stack_rocket.`)
+	}
+
+}
+
 func (s *NarwhalSuite) Test_Run() {
 	assert := a.New(s.T())
 	s.n.Run("random", "do.ckerfile", "sample:sample", "")

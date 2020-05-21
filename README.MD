@@ -93,6 +93,8 @@ if len(err) > 0 {
 ```yaml
 version: '3.8'
 
+stack: "stack-name" # you can have an alternative stack-name, which in the method, you can pass in "" to ignore
+
 services:
   webapp:
     image: rocket:latest

@@ -1,0 +1,18 @@
+version: '3.8'
+
+stack: help-stack
+
+services:
+  rocket:
+    image: rocket
+    ports:
+      - 8000:8000
+    deploy:
+      replicas: 3
+
+
+images:
+  rocket:
+    context: rocket
+    file: df
+

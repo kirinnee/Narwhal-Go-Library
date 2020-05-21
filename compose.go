@@ -18,7 +18,7 @@ type Builds struct {
 	File    string
 }
 
-func parse(file string) (b []byte, compose Compose, err error) {
+func parse(file string) (b []byte, compose Compose, stack string, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = r.(error)
@@ -29,6 +29,8 @@ func parse(file string) (b []byte, compose Compose, err error) {
 	b = nil
 	compose = Compose{}
 	err = nil
+	stack = ""
+
 	var f []byte
 	f, err = ioutil.ReadFile(file)
 	if err != nil {
@@ -42,6 +44,11 @@ func parse(file string) (b []byte, compose Compose, err error) {
 	out := make(map[string]Builds)
 
 	changeOut := make(map[string]string)
+
+	if value, ok := m["stack"]; ok {
+		stack = value.(string)
+		delete(m, "stack")
+	}
 
 	//parse compose here
 	if value, ok := m["images"]; ok {
@@ -81,7 +88,7 @@ func parse(file string) (b []byte, compose Compose, err error) {
 	}
 
 	b, err = yml.Marshal(&m)
-	return b, Compose{out}, nil
+	return b, Compose{out}, stack, nil
 
 }
 
