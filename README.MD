@@ -153,6 +153,18 @@ if len(err) > 0 {
 }
 ```
 
+### Move Out
+`MoveOut(<image>, <from>, <to>, <command>)`
+Copies a file from a image out after executing a command
+
+```go
+err := narwhal.MoveOut("app", "/data/migrate.sql", "./migrate.sql", "sh")
+if len(err) > 0 {
+    //handle error here
+}
+```
+
+
 
 ### Build and Run Workspace 
 `Run(<build context>, <dockerfile>, <image name>, <container name>)`

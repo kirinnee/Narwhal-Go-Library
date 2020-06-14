@@ -319,6 +319,23 @@ func (n *Narwhal) StopStack(stack string, file string) []string {
 	return n.Cmd.Create("docker", "stack", "rm", stack).Run()
 }
 
+func (n *Narwhal) MoveOut(image, from, to, command string) []string {
+
+	createDummy := n.Cmd.Create("docker", "create", "-ti", "--name", "narwhal-dummy", image, command)
+	err := createDummy.Run()
+	if len(err) > 0 {
+		return err
+	}
+	cp := n.Cmd.Create("docker", "cp", "narwhal-dummy:"+from, to)
+	err = cp.Run()
+	if len(err) > 0 {
+		return err
+	}
+
+	rm := n.Cmd.Create("docker", "rm", "-f", "narwhal-dummy")
+	return rm.Run()
+}
+
 func (n *Narwhal) RemoveImage(filter ...string) []string {
 	images, remain, err := n.Images(filter...)
 	if len(err) > 0 {
