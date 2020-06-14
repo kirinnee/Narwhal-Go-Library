@@ -325,24 +325,34 @@ func (n *Narwhal) MoveOut(ctx, file, image, from, to, command string) []string {
 	if len(err) > 0 {
 		return err
 	}
+	ise := false
 	createDummy := n.Cmd.Create("docker", "create", "-ti", "--name", "narwhal-dummy", image, command)
-	err = createDummy.Run()
+	terr := createDummy.Run()
 	if len(err) > 0 {
-		return err
+		ise = true
 	}
-	cp := n.Cmd.Create("docker", "cp", "narwhal-dummy:"+from, to)
-	err = cp.Run()
-	if len(err) > 0 {
-		return err
+	if !ise {
+		cp := n.Cmd.Create("docker", "cp", "narwhal-dummy:"+from, to)
+		err = cp.Run()
+		if len(err) > 0 {
+			terr = append(terr, err...)
+			ise = true
+		}
 	}
 
-	rm := n.Cmd.Create("docker", "rm", "-f", "narwhal-dummy")
-	err = rm.Run()
-	if len(err) > 0 {
-		return err
+	if !ise {
+		rm := n.Cmd.Create("docker", "rm", "-f", "narwhal-dummy")
+		err = rm.Run()
+		if len(err) > 0 {
+			terr = append(terr, err...)
+			ise = true
+		}
 	}
+
 	rmi := n.Cmd.Create("docker", "rmi", image)
-	return rmi.Run()
+	err = rmi.Run()
+	return append(terr, err...)
+
 }
 
 func (n *Narwhal) RemoveImage(filter ...string) []string {
