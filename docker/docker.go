@@ -36,7 +36,7 @@ func (d Docker) Build(context, file, image string, additional []string) []string
 	return d.cmd.Create("docker", args...).Run()
 }
 
-func (d Docker) Run(image, name, cmd string, additional []string) []string {
+func (d Docker) Run(image, name string, cmd, additional []string) []string {
 	args := []string{
 		"run",
 		"--rm",
@@ -47,9 +47,8 @@ func (d Docker) Run(image, name, cmd string, additional []string) []string {
 	}
 	args = append(args, additional...)
 	args = append(args, image)
-	if cmd != "" {
-		args = append(args, cmd)
-	}
+	args = append(args, cmd...)
+
 	return d.cmd.Create("docker", args...).Run()
 }
 

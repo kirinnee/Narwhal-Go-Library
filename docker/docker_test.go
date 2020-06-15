@@ -50,7 +50,7 @@ func (s *DockerSuite) Test_Run() {
 	assert := a.New(s.T())
 
 	// test
-	err := s.d.Run("wew:tag", "", "", []string{})
+	err := s.d.Run("wew:tag", "", []string{}, []string{})
 	assert.Empty(err)
 	assert.Equal(s.f.Output[0], "BOOOOOO")
 }

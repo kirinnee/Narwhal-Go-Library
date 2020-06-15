@@ -136,7 +136,7 @@ func (s *NarwhalSuite) Test_DeployAuto_with_embedded_stack_name() {
 	// Assert
 	assert.Len(stack, 2)
 	for _, v := range container {
-		assert.Equal(v, `"help-stack_rocket.`)
+		assert.Equal(v, `"nw-stack_rocket.`)
 	}
 }
 
@@ -194,7 +194,7 @@ func (s *NarwhalSuite) Test_RemoveStack_embedded() {
 
 func (s *NarwhalSuite) Test_Run() {
 	assert := a.New(s.T())
-	s.n.Run("random", "do.ckerfile", "sample:sample", "", "", []string{"--rm"})
+	s.n.Run("random", "do.ckerfile", "sample:sample", "", []string{}, []string{"--rm"})
 
 	out := s.factory.Output
 	assert.Equal(out[len(out)-1], "BOOOOOO")

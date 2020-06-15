@@ -269,7 +269,7 @@ func (n *Narwhal) DeployAuto(stack string, file string, unsafe bool) []string {
 
 }
 
-func (n *Narwhal) Run(context, file, image, name, cmd string, additional []string) []string {
+func (n *Narwhal) Run(context, file, image, name string, cmd, additional []string) []string {
 
 	buildArgs := make([]string, 0, len(additional))
 	runArgs := make([]string, 0, len(additional))
