@@ -26,13 +26,20 @@ func (d Docker) Build(context, file, image string) []string {
 	return d.cmd.Create("docker", "build", "--rm", "--tag", image, "--file", file, context).Run()
 }
 
-func (d Docker) Run(image, name string) []string {
-	if name == "" {
-		return d.cmd.Create("docker", "run", "--rm", image).Run()
-	} else {
-		return d.cmd.Create("docker", "run", "--rm", "--name", name, image).Run()
-
+func (d Docker) Run(image, name, cmd string) []string {
+	args := []string{
+		"run",
+		"--rm",
 	}
+	if name != "" {
+		args = append(args, "--name")
+		args = append(args, name)
+	}
+	args = append(args, image)
+	if cmd != "" {
+		args = append(args, cmd)
+	}
+	return d.cmd.Create("docker", args...).Run()
 }
 
 func (d Docker) containers(psq command.Executable) ([]string, []string) {
