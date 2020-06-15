@@ -340,13 +340,11 @@ func (n *Narwhal) MoveOut(ctx, file, image, from, to, command string) []string {
 		}
 	}
 
-	if !ise {
-		rm := n.Cmd.Create("docker", "rm", "-f", "narwhal-dummy")
-		err = rm.Run()
-		if len(err) > 0 {
-			terr = append(terr, err...)
-			ise = true
-		}
+	rm := n.Cmd.Create("docker", "rm", "-f", "narwhal-dummy")
+	err = rm.Run()
+	if len(err) > 0 {
+		terr = append(terr, err...)
+		ise = true
 	}
 
 	rmi := n.Cmd.Create("docker", "rmi", image)
