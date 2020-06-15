@@ -7,6 +7,7 @@ import (
 	"gitlab.com/kiringo/narwhal_lib/images"
 	"log"
 	"path/filepath"
+	"strings"
 )
 
 type Narwhal struct {
@@ -229,7 +230,7 @@ func (n *Narwhal) Deploy(stack string, file string) []string {
 		return []string{err.Error()}
 	}
 	for k, v := range compose.Images {
-		err := n.docker.Build(v.Context, v.File, k)
+		err := n.docker.Build(v.Context, v.File, k, []string{})
 		if len(err) > 0 {
 			return err
 		}
@@ -268,12 +269,24 @@ func (n *Narwhal) DeployAuto(stack string, file string, unsafe bool) []string {
 
 }
 
-func (n *Narwhal) Run(context, file, image, name, cmd string) []string {
-	err := n.docker.Build(context, file, image)
+func (n *Narwhal) Run(context, file, image, name, cmd string, additional []string) []string {
+
+	buildArgs := make([]string, 0, len(additional))
+	runArgs := make([]string, 0, len(additional))
+
+	for _, v := range additional {
+		if strings.HasPrefix(v, "b:") {
+			buildArgs = append(buildArgs, trim(v, "b:"))
+		} else if strings.HasPrefix(v, "r:") {
+
+			runArgs = append(runArgs, trim(v, "r:"))
+		}
+	}
+	err := n.docker.Build(context, file, image, buildArgs)
 	if len(err) > 0 {
 		return err
 	}
-	return n.docker.Run(image, name, cmd)
+	return n.docker.Run(image, name, cmd, runArgs)
 }
 
 func (n *Narwhal) Images(filter ...string) (images.Images, []string, []string) {
@@ -321,7 +334,7 @@ func (n *Narwhal) StopStack(stack string, file string) []string {
 
 func (n *Narwhal) MoveOut(ctx, file, image, from, to, command string) []string {
 
-	err := n.docker.Build(ctx, file, image)
+	err := n.docker.Build(ctx, file, image, []string{})
 	if len(err) > 0 {
 		return err
 	}

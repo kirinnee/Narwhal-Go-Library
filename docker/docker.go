@@ -21,12 +21,22 @@ func (d Docker) ContainerIds() ([]string, []string) {
 
 }
 
-func (d Docker) Build(context, file, image string) []string {
+func (d Docker) Build(context, file, image string, additional []string) []string {
 	file = filepath.Join(context, file)
-	return d.cmd.Create("docker", "build", "--rm", "--tag", image, "--file", file, context).Run()
+	args := []string{
+		"build",
+		"--tag",
+		image,
+		"--file",
+		file,
+	}
+	args = append(args, additional...)
+	args = append(args, context)
+
+	return d.cmd.Create("docker", args...).Run()
 }
 
-func (d Docker) Run(image, name, cmd string) []string {
+func (d Docker) Run(image, name, cmd string, additional []string) []string {
 	args := []string{
 		"run",
 		"--rm",
@@ -35,6 +45,7 @@ func (d Docker) Run(image, name, cmd string) []string {
 		args = append(args, "--name")
 		args = append(args, name)
 	}
+	args = append(args, additional...)
 	args = append(args, image)
 	if cmd != "" {
 		args = append(args, cmd)

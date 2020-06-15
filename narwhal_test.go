@@ -194,7 +194,8 @@ func (s *NarwhalSuite) Test_RemoveStack_embedded() {
 
 func (s *NarwhalSuite) Test_Run() {
 	assert := a.New(s.T())
-	s.n.Run("random", "do.ckerfile", "sample:sample", "")
+	s.n.Run("random", "do.ckerfile", "sample:sample", "", "", []string{"--rm"})
+
 	out := s.factory.Output
 	assert.Equal(out[len(out)-1], "BOOOOOO")
 

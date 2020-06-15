@@ -36,7 +36,7 @@ func (s *DockerSuite) TearDownSuite() {
 func (s *DockerSuite) Test_Build() {
 	assert := a.New(s.T())
 	//test
-	err := s.d.Build("../random", "do.ckerfile", "wew:tag")
+	err := s.d.Build("../random", "do.ckerfile", "wew:tag", []string{})
 	ret := test_helper.HelpRun("docker", "images", "--format", "{{.Repository}}:{{.Tag}}", "-f", "reference=wew")
 
 	//assertions
@@ -50,7 +50,7 @@ func (s *DockerSuite) Test_Run() {
 	assert := a.New(s.T())
 
 	// test
-	err := s.d.Run("wew:tag", "")
+	err := s.d.Run("wew:tag", "", "", []string{})
 	assert.Empty(err)
 	assert.Equal(s.f.Output[0], "BOOOOOO")
 }

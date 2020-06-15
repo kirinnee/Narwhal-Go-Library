@@ -167,11 +167,25 @@ if len(err) > 0 {
 
 
 ### Build and Run Workspace 
-`Run(<build context>, <dockerfile>, <image name>, <container name>)`
-To ask the daemon to decide container name, please use `"""` (empty string) for 
+`Run(<build context>, <dockerfile>, <image name>, <container name>, <command>, <addition flags>)`
+To ask the daemon to decide container name, please use `""` (empty string) for
 `container name` field.
+
+To use default start command from Dockerfile, please use `""` (empty string) for 
+`commad` field.
+
+All docker daemon flags can be passed in the `addition flags` field, but each 
+flag (including their value) has to be prepended by `b:` for build command arguments
+and `r:` for run command arguments.
+
+
+
+Example: `[]string{"b:--rm"}`
+
+Example: `[]string{"r:-e", "r:KEY=VALUE"}`
+
 ```go
-err := narwhal.Run(".","Dockerfile","server:5", "")
+err := narwhal.Run(".","Dockerfile","server:5", "", "" , []string{"r:-v", "r:/data:/data"})
 if len(err) > 0 {
     //handle error here
 }
