@@ -29,14 +29,11 @@ func (c Factory) Create(command string, arg ...string) Executable {
 
 func (command *Command) Write(b []byte) error {
 	pipe, err := command.cmd.StdinPipe()
+	defer pipe.Close()
 	if err != nil {
 		return err
 	}
 	_, err = pipe.Write(b)
-	if err != nil {
-		return err
-	}
-	err = pipe.Close()
 	if err != nil {
 		return err
 	}
