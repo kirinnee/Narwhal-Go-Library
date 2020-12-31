@@ -240,6 +240,8 @@ func (n *Narwhal) Deploy(stack string, file string) []string {
 			return err
 		}
 	}
+
+	log.Println("Begin deployment...")
 	deploy := n.Cmd.Create("docker", "stack", "deploy", "--prune", "--with-registry-auth", "--compose-file", "-", "--resolve-image", "changed", stack)
 
 	errors := make(chan error, 0)
@@ -252,13 +254,14 @@ func (n *Narwhal) Deploy(stack string, file string) []string {
 		}
 		results <- "success"
 	}()
+	ret := deploy.Run()
 	select {
 	case err := <-errors:
 		return []string{err.Error()}
 	case res := <-results:
 		println(res)
 	}
-	return deploy.Run()
+	return ret
 }
 
 func (n *Narwhal) DeployAuto(stack string, file string, unsafe bool) []string {
