@@ -231,7 +231,12 @@ func (n *Narwhal) Deploy(stack string, file string) []string {
 	}
 	for k, v := range compose.Images {
 		err := n.docker.Build(v.Context, v.File, k, []string{})
-		if len(err) > 0 {
+		done := "false"
+		last := strings.Split(err[len(err)-1], " ")[1]
+		if strings.HasPrefix(last, "DONE") {
+			done = "true"
+		}
+		if len(err) > 0 && done == "false" {
 			return err
 		}
 	}
