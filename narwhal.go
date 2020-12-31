@@ -8,6 +8,7 @@ import (
 	"log"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 type Narwhal struct {
@@ -260,6 +261,7 @@ func (n *Narwhal) Deploy(stack string, file string) []string {
 		}
 		results <- "success"
 	}()
+	time.Sleep(time.Second * 1)
 	ret := deploy.Run()
 	select {
 	case err := <-errors:
