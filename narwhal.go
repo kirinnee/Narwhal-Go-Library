@@ -241,9 +241,22 @@ func (n *Narwhal) Deploy(stack string, file string) []string {
 		}
 	}
 	deploy := n.Cmd.Create("docker", "stack", "deploy", "--prune", "--with-registry-auth", "--compose-file", "-", "--resolve-image", "changed", stack)
-	err = deploy.Write(b)
-	if err != nil {
+
+	errors := make(chan error, 0)
+	results := make(chan string, 0)
+	go func() {
+		err := deploy.Write(b)
+		if err != nil {
+			errors <- err
+			return
+		}
+		results <- "success"
+	}()
+	select {
+	case err := <-errors:
 		return []string{err.Error()}
+	case res := <-results:
+		println(res)
 	}
 	return deploy.Run()
 }
