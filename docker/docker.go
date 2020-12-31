@@ -1,6 +1,7 @@
 package docker
 
 import (
+	"fmt"
 	"gitlab.com/kiringo/narwhal_lib/command"
 	"path/filepath"
 )
@@ -33,7 +34,16 @@ func (d Docker) Build(context, file, image string, additional []string) []string
 	args = append(args, additional...)
 	args = append(args, context)
 
-	return d.cmd.Create("docker", args...).Run()
+	e := d.cmd.Create("docker", args...).CustomRun(func(s string) {
+		if !d.quiet {
+			fmt.Println(s)
+		}
+	}, func(s string) {
+		if !d.quiet {
+			fmt.Println(s)
+		}
+	})
+	return []string{e}
 }
 
 func (d Docker) Run(image, name string, cmd, additional []string) []string {
